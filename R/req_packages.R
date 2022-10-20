@@ -7,6 +7,8 @@ library(Bessel)
 library(ghyp)
 library(ggplot2)
 library(Rfast)
+  require(dplyr)
+  require(cowplot)
 
 library(rayshader)
 library(Rfast)

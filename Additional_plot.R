@@ -33,7 +33,7 @@ return(par)
 #' Plot_post_sample_cumAvg_Trace_Acf
 #' @export
 
-Plot_MCMC_Diag_Triplet<- function(data, lag.max = 24, ci = 0.95, large.sample.size = TRUE, horizontal = TRUE,CumType="both", ThemeBoth=2,ACF=TRUE, Density=TRUE,y_lab_text=NULL,SelBw="nrd0",...) {
+Plot_MCMC_Diag_Triplet1<- function(data, lag.max = 24, ci = 0.95, large.sample.size = TRUE, horizontal = TRUE,CumType="both", ThemeBoth=2,ACF=TRUE, Density=TRUE,y_lab_text=NULL,SelBw="nrd0",...) {
 
   require(ggplot2)
   require(dplyr)
