@@ -100,11 +100,11 @@ Y = data_lst$Y;X=data_lst$X;
 
 beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,EM_tolerence = .00001)
 beta_init=beta_EM
-lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init_vec = beta_init, MCSamplerSize =1000)
+lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = beta_init, MCSamplerSize =10)
 
 
-i=2;j= 1
-Plot_MCMC_Diag_Triplet(lst$beta_all[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
+lst$i=2;j= 1
+Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
 
 
 (data_lst$beta[i,j])

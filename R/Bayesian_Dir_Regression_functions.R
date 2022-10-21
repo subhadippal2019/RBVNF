@@ -38,7 +38,8 @@ Data_generator_vnf_reg<-function(n=100,p=NULL, d=NULL,  beta=NULL, X=NULL, conce
       if(!is.null(beta)){ p=dim(beta)[1];   d=dim(beta)[2];   }
       if(!is.null( X )){  n=dim(X)[1];   }
 
-      if( is.null(beta)){ beta =beta_factor*matrix(rnorm(p*d) ,nrow=p, ncol=d ) }
+      #if( is.null(beta)){ beta =beta_factor*matrix(rnorm(p*d) ,nrow=p, ncol=d ) } # normally distributed X
+      if( is.null(beta)){ beta =beta_factor*matrix( runif(p*d, -1, 1) ,nrow=p, ncol=d ) }  # Uniform(-10,10)
       if( is.null(X)){ X = array(  rnorm(n*p, 0, 1), dim=c(n,p)    ) }
 
 
@@ -84,19 +85,50 @@ Sample_all_T_Aug<- function(n, nu, X, beta,K , j_nu_0 , J_nuPlus1  , eps_accurac
 
 
 #' @export
-MCMC_Dir_regression_sampler_V1<-function(Y, X, prior, beta_init_vec, Sigma_init=NULL, MCSamplerSize=50, K=100,eps_accuracy=.00000001){
+MCMC_Dir_regression_sampler_V1<-function(Y, X, prior=NULL, beta_init=NULL, Sigma_init=NULL, MCSamplerSize=50, K=100,eps_accuracy=.00000001){
 
   n=dim(Y)[1]; p=dim(X)[2]; d=dim(Y)[2]; nu=d/2-1
   #######################################################################################################
   #######################################################################################################
   ####################################Initial Value######################################################
 
-  beta=beta_init_vec
-  if(is.null(Sigma_init)){
-    tau_square=10000
-    Sigma=tau_square*diag(p)
+
+  if(is.null(beta_init)){
+    print("Default Procedure using EM is being used to obtain initial value of the regression coefficients that will be  used to start the MCMC Data Augmentation Algorithm. Iteration number of EM algorithm is being printed untill convergence." )
+    beta_init=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,EM_tolerence = .00001)
   }
-  #Theta=Theta_init
+  else {
+
+  if(!is.matrix(beta_init)){
+    beta_init=NULL
+    warning("beta_init: The initial value of beta is not matrix. The specification will be ignored and the function will initialize with the Default procedure.  ")
+  }
+
+  if(is.matrix(beta_init)){
+    if(any(dim(beta_init) != c(p,d))){
+      warning("beta_init: The initial value of beta is a matrix but not of a appropriate dimension. The specification will be ignored and the function will initialize with the Default procedure.  ")
+      beta_init=NULL
+    }
+    if(any(!is.numeric(beta_init))){
+      warning("beta_init: The initial value of beta is a matrix but not numeric. The specification will be ignored and the function will initialize with the Default procedure.  ")
+      beta_init=NULL
+    }
+  }
+}
+
+
+
+  if(is.null(Sigma_init)){
+        tau_square=10000
+        Sigma=tau_square*diag(p)
+  }
+  ####################################Initial Assignment Step############################################
+  beta=beta_init
+  #######################################################################################################
+  #######################################################################################################
+  #################################### Prior Specification ##############################################
+
+
 
   if(is.null(prior)){
          # tau_square=10000
@@ -111,8 +143,7 @@ MCMC_Dir_regression_sampler_V1<-function(Y, X, prior, beta_init_vec, Sigma_init=
 
 
 
-
-
+  Start_Time=Sys.time()
   #K = 100
   j_nu_0=gsl::bessel_zero_Jnu(nu,1:K);
   J_nuPlus1=BesselJ(j_nu_0,(nu+1));
@@ -128,6 +159,7 @@ MCMC_Dir_regression_sampler_V1<-function(Y, X, prior, beta_init_vec, Sigma_init=
   #######################################################################################################
 
   sigma_square=1000
+  print(" Initial value and prior information obtained successfully.  The MCMC samples are being generated. This step may take significnt amount of time depending on the MCMC sample size to be Generated.   " )
   #browser()
   for(iter in 1:MCSamplerSize){
     #######################################################################################################
@@ -182,11 +214,68 @@ MCMC_Dir_regression_sampler_V1<-function(Y, X, prior, beta_init_vec, Sigma_init=
 
   } #### The End of the MCMC
 
-  lst=list();
-  lst$beta_all=beta_all
+
+
+
+
+  ## Codes for storing the pivotal quantities
+
+  Run_Time=Sys.time()-Start_Time
+  #Sys_info=get_sys_details()
+
+
+  ###################### put this chunk inside a function
+  function_name=as.character(match.call()[1])
+  function_def0<-  capture.output(print(get( function_name)));
+  function_def0[1]=paste0( function_name,"<-",function_def0[1])
+  function_def=paste( function_def0 , collapse = "\n")
+  #function_def1=dput(get(function_name))
+  #########
+
+  Sys_info=Sys.info()
+
+  # MC<-list(Mc_Beta=Store_Beta,
+  # Mc_sigma_sq=Store_sigma_sq,
+  # Mc_xi=Store_xi,
+  # Mc_eta=Store_eta,
+  # Mc_Nu=Store_Nu)
+
+
+  MC<-list(         Mc_Beta=  beta_all,
+                    T_aux_var=T_aug_all)
+
+
+  RunDetails<- list(Data=list(Y=Y, X=X),
+                 prior=prior,
+                 beta_init=beta_init,
+                 Methodtype=paste0("Data Augmentation Gibbs for regression of directional vectors in d= ", d, "dimensional Euclidean Space, i.e. Sphere d-1"),
+                 Run_Time=Run_Time,
+                 System_info=Sys_info,
+                 call=match.call(),
+                 function_def=function_def,
+                 additionalInfo="Utilize #cat(lst$RunDetails$function_def) to see the function definition properly.\\ MC contains the main Markov chain on beta and augmented variables.\\ K is a technical parameter.It is the Truncation term of a MPG density series. ",
+                 MCSamplerSize=MCSamplerSize,
+                 K=K,
+                 eps_accuracy=eps_accuracy)
+
+
+
+  lst<-list(MC=MC,
+            RunDetails=RunDetails
+            )
+
+
+  #Y, X, prior, beta_init_vec, Sigma_init=NULL, MCSamplerSize=50, K=100,eps_accuracy=.00000001
+
+
+#cat(lst$function_def)
+
+
+  #lst=list();
+  #lst$beta_all=beta_all
   #lst$Theta_all=Theta_all
   #lst$sigma_square_all=sigma_square_all
-  lst$T_aug_all=T_aug_all
+  #lst$T_aug_all=T_aug_all
   return(lst)
 }
 
