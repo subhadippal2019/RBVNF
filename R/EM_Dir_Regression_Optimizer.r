@@ -3,13 +3,12 @@
 ####################################################################################################################
 ####################################################################################################################
 
+      ComputeD_ET<-function(betaMat_old, X, nu){
+        intput_arg  <-  apply(X%*%betaMat_old, MARGIN = 1, FUN = norm)
+        log_ET      <-  BesselIR(x=intput_arg, nu = nu, ifLog = TRUE)- log(2)- log(intput_arg)
 
-ComputeD_ET<-function(betaMat_old, X, nu){
-  intput_arg  <-  apply(X%*%betaMat_old, MARGIN = 1, FUN = norm)
-  log_ET      <-  BesselIR(x=intput_arg, nu = nu, ifLog = TRUE)- log(2)- log(intput_arg)
-
-  return(exp(log_ET))
-}
+        return(exp(log_ET))
+      }
 
 ####################################################################################################################
 ####################################################################################################################
