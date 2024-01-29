@@ -81,8 +81,8 @@ prior$sigma_square_b=1
 #source("C:\\Users\\subha\\Dropbox\\projects\\Regression of Directional data\\RCode\\functions.r")
 
 n=1000 # NUmber of the samples
-p=4  # NUmber of the regression covariates
-d=5 # Number of direcions in the direcional data
+p=10  # NUmber of the regression covariates
+d=3 # Number of direcions in the direcional data
 
 
 #### bbeta is a matrix of dimension p\times d
@@ -98,9 +98,9 @@ data_lst = Data_generator_vnf_reg(n=n, p=p, d=d, concentration_factor = 1, beta_
 
 Y = data_lst$Y;X=data_lst$X;
 
-beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,EM_tolerence = .00001)
+beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
 beta_init=beta_EM
-lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = beta_init, MCSamplerSize =10)
+lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = beta_init,  MCSamplerSize =10)
 
 
 lst$i=2;j= 1
@@ -109,7 +109,7 @@ Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]
 
 (data_lst$beta[i,j])
 
-(data_lst$beta)/matrix(lst$beta_all[1000, ], nrow=p)
+#(data_lst$beta)/matrix(lst$MC$Mc_Beta[1000, ], nrow=p)
 #matrix(apply(lst$beta_all, MARGIN = c(2,3), FUN = mean), nrow=p)
-apply(lst$beta_all, MARGIN = c(2,3), FUN = mean)
+apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
 (data_lst$beta)
