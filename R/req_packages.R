@@ -1,4 +1,6 @@
 
+
+
 #' @export
 load_packages<-function(){
 #################################
@@ -7,22 +9,14 @@ library(Bessel)
 library(ghyp)
 library(ggplot2)
 library(Rfast)
-  require(dplyr)
-  require(cowplot)
 
-library(rayshader)
-library(Rfast)
-
-  library(ghyp)
-
+require(cowplot)
 library(grid)
 library(gridExtra)
-
+  library(mvtnorm) #install.packages("pgdraw")
  # MCMCpack
-
   #Rfast::rvmf(n=1, mu=c(1,0,0), k=10)
  # library("rfast") #library("pgdraw")
-  library(mvtnorm) #install.packages("pgdraw")
   #library(nimble)
 }
 #library()
@@ -35,6 +29,7 @@ load_additional_packages<-function(){
   #library(emdbook)
   #Here, I load a map with the raster package.
   library(ggplot2)
+  require(dplyr)
   library(tidyverse)
   library(rgdal)
   library(rayshader)
