@@ -39,6 +39,7 @@ library(Rfast)
 #library(benchmarkme)
 library(Bessel)
 library(gsl)
+library(ghyp)
 n=1000 # NUmber of the samples
 p=4  # NUmber of the regression covariates
 d=5 # Number of direcions in the direcional data
