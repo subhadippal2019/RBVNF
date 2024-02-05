@@ -47,5 +47,7 @@ data_lst = Data_generator_vnf_reg(n=n, p=p, d=d, concentration_factor = 1, beta_
 Y = data_lst$Y;X=data_lst$X;
 lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X,  MCSamplerSize =100)
 i=1;j= 1
+library(ggplot2)
+library(cowplot) #
 Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
 }

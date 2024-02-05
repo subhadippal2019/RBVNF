@@ -103,7 +103,7 @@ beta_init=beta_EM
 lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = beta_init,  MCSamplerSize =10)
 
 
-lst$i=2;j= 1
+i=2;j= 1
 Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
 
 

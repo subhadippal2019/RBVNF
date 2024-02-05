@@ -105,7 +105,9 @@ Sample_all_T_Aug<- function(n, nu, X, beta,K , j_nu_0 , J_nuPlus1  , eps_accurac
 #' data_lst = Data_generator_vnf_reg(n=n, p=p, d=d, concentration_factor = 1, beta_factor = 5)
 #' Y = data_lst$Y;X=data_lst$X;
 #' lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X,  MCSamplerSize =100)
-#'i=1;j= 1
+#' i=1;j= 1
+#' library(ggplot2)
+#' library(cowplot) #
 #'Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
 #' @export
 MCMC_Dir_regression_sampler_V1<-function(Y, X, prior=NULL, beta_init=NULL, Sigma_init=NULL, MCSamplerSize=50, K=100,eps_accuracy=.00000001){
