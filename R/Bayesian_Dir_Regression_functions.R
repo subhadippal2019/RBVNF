@@ -83,7 +83,29 @@ Sample_all_T_Aug<- function(n, nu, X, beta,K , j_nu_0 , J_nuPlus1  , eps_accurac
 
 
 
-
+#' Performs a Bayesian regression for the directional responses.
+#'
+#' @param Y:  n times d  matrix containing n directional response of dimension parameter d.
+#' norm of each row of the matrix Y is 1.
+#' @param X: A n*p design matrix containing the data of the p variables.
+#' If it is required, the intercept should be included in the first column.
+#' @param prior: Prior specification for the posterior. Default (prior=NULL) uses the very flat prior.
+#' @param beta_init: Initial value of rregression coefficient. The default (beta_innit=NULL) utilizes the EM algorithm to get a initial value
+#' @param MCSamplerSize: Number of MCMC samples required to be generated.
+#' @return MCMC samples from for  Posterior of mode and concentration parameter of Vonmises distribution.
+#' @examples
+#' library(Rfast)
+#' #library(benchmarkme)
+#' library(Bessel)
+#' library(gsl)
+#' n=1000 # NUmber of the samples
+#' p=4  # NUmber of the regression covariates
+#' d=5 # Number of direcions in the direcional data
+#' data_lst = Data_generator_vnf_reg(n=n, p=p, d=d, concentration_factor = 1, beta_factor = 5)
+#' Y = data_lst$Y;X=data_lst$X;
+#' lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X,  MCSamplerSize =100)
+#'i=1;j= 1
+#'Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
 #' @export
 MCMC_Dir_regression_sampler_V1<-function(Y, X, prior=NULL, beta_init=NULL, Sigma_init=NULL, MCSamplerSize=50, K=100,eps_accuracy=.00000001){
 
