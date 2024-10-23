@@ -100,7 +100,7 @@ Y = data_lst$Y;X=data_lst$X;
 
 beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
 beta_init=beta_EM
-lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = beta_init,  MCSamplerSize =10)
+lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = beta_init,  MCSamplerSize =100)
 
 
 i=2;j= 1

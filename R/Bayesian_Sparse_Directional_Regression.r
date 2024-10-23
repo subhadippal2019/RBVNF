@@ -30,18 +30,31 @@ Mat_inv<-function(M){
 
 
 #' @export
-Data_generator_vnf_reg_sparse<-function(n=100,p=30, d=3,NumOfNonZeroBeta=c(5, 4, 6),  beta=NULL, X=NULL){
+Data_generator_vnf_reg_sparse<-function(n=100,p=30, d=3,NumOfNonZeroBeta=c(5, 4, 6),  beta=NULL, X=NULL, SetUp=1){
   #### beta is a  bbeta is a matrix of dimension p\times d matrix.
   if(!is.null(beta)){ p=dim(beta)[1];   d=dim(beta)[2];   }
   if(!is.null( X )){  n=dim(X)[1];   }
+#browser()
+  if(SetUp==1){
 
-  if( is.null(beta)){
-    beta =matrix(0 ,nrow=p, ncol=d )
-            for(jj in 1:d){
-                beta[1:NumOfNonZeroBeta[jj], jj] = (2+.5/jj)^(-seq(-3,3.5,length.out =NumOfNonZeroBeta[jj] ))
+              if( is.null(beta)){
+                    beta =matrix(0 ,nrow=p, ncol=d )
+                            for(jj in 1:d){
+                                beta[1:NumOfNonZeroBeta[jj], jj] = (2+.5/jj)^(-seq(-3,3.5,length.out =NumOfNonZeroBeta[jj] ))
+                            }
+                    }
+              if( is.null(X)){ X = array(  rnorm(n*p, 0, 1), dim=c(n,p)    ) }
+  }
+  if(SetUp!=1){
+            print("Currently SetUp can be wither 1 or 2. Currently Using Default SetUp=2 ")
+            if( is.null(beta)){
+              beta =matrix(0 ,nrow=p, ncol=d )
+              for(jj in 1:d){
+                beta[1:NumOfNonZeroBeta[1], jj] =  (runif(n = NumOfNonZeroBeta[1], min = NumOfNonZeroBeta[2], max = NumOfNonZeroBeta[3]))  #(2+.5/jj)^(-seq(-3,3.5,length.out =NumOfNonZeroBeta[jj] ))
+              }
             }
-    }
-  if( is.null(X)){ X = array(  rnorm(n*p, 0, 1), dim=c(n,p)    ) }
+            if( is.null(X)){ X = array(  rnorm(n*p, 0, 1), dim=c(n,p)    ) }
+  }
   #browser()rm(list=ls())
 
   ##################  browser()
@@ -64,6 +77,14 @@ Data_generator_vnf_reg_sparse<-function(n=100,p=30, d=3,NumOfNonZeroBeta=c(5, 4,
 
 
 
+
+
+
+
+
+
+
+
 #' @export
 MCMC_Dir_regression_sampler_sparse_V1<-function(Y, X, prior, beta_init_vec, Sigma_init=NULL, MCSamplerSize=50, K=100,eps_accuracy=.00000001){
 
@@ -71,7 +92,7 @@ MCMC_Dir_regression_sampler_sparse_V1<-function(Y, X, prior, beta_init_vec, Sigm
   #######################################################################################################
   #######################################################################################################
   ####################################Initial Value######################################################
-
+#browser()
   beta=beta_init_vec
   if(is.null(Sigma_init)){
     tau_square=10000;

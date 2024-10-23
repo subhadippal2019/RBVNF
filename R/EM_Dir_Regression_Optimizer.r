@@ -4,10 +4,9 @@
 ####################################################################################################################
 
       ComputeD_ET<-function(betaMat_old, X, nu){
-        intput_arg  <-  apply(X%*%betaMat_old, MARGIN = 1, FUN = norm)
-        log_ET      <-  BesselIR(x=intput_arg, nu = nu, ifLog = TRUE)- log(2)- log(intput_arg)
-
-        return(exp(log_ET))
+            intput_arg  <-  apply(X%*%betaMat_old, MARGIN = 1, FUN = norm)
+            log_ET      <-  BesselIR(x=intput_arg, nu = nu, ifLog = TRUE)- log(2)- log(intput_arg)
+            return(exp(log_ET))
       }
 
 ####################################################################################################################
@@ -19,6 +18,7 @@
                                                beta_init=NULL,
                                                EM_tolerence=.0001,
                                                Max_EM_iter=10000){
+         n=dim(Y)[1]; p=dim(X)[2]; d=dim(Y)[2]; nu=d/2-1
 
               if(is.null(prior)){
                 # tau_square=10000
