@@ -364,6 +364,35 @@ Calculate_DIC(lst_germany_LASSO)
   ############ Example 1 German Political science Data plus
 
 
+  sigma_square=1
+  tau_square=1000
+
+  beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
+  beta_init=beta_EM
+  lst_germany=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X,  beta_init = NULL,   lasso_lambda = .01)
+  #save(lst_germany, file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/workspaces/Germany_RUN_Example1_11000.rdata")
+
+xx<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=Y,
+                                             X=X,
+                                              beta_init = NULL,
+                                             Max_EM_iter=1000,
+                                             cv_k_fold = 10,
+                                             cv_lambda_n = 50,
+                                             epsilon_lambda_range_min = .0001
+  )
+
+  plot.cv.DirReg(xx)
+
+  lst_germany_LASSO=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =200, lasso_lambda =.1, Sample_lasso_lambda = c(1, 100) )
+
+
+
+
+
+
+
+
+
 
 
   Lasso_beta_EM=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X,  beta_init = beta_EM,   EM_tolerence = .00001, lasso_lambda = .03, Max_EM_iter = 3000)

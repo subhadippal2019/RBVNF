@@ -5,9 +5,14 @@
 
       ComputeD_ET<-function(betaMat_old, X, nu){
             intput_arg  <-  apply(X%*%betaMat_old, MARGIN = 1, FUN = norm)
+            if(any(intput_arg==0)){intput_arg[intput_arg==0]=1e-20} # -2*log(2)- log(nu+1)
+            #if(intput_arg>0){
             log_ET      <-  BesselIR(x=intput_arg, nu = nu, ifLog = TRUE)- log(2)- log(intput_arg)
+            #}
             return(exp(log_ET))
       }
+
+
 
 ####################################################################################################################
 ####################################################################################################################

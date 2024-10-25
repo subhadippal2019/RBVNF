@@ -1,12 +1,12 @@
 
 
 n=1000 # NUmber of the samples
-p=10 # NUmber of the regression covariates
-d=2 # Number of direcions in the direcional data
+p=8 # NUmber of the regression covariates
+d=10 # Number of direcions in the direcional data
 
 #Test Lasso
 data_lst = Data_generator_vnf_reg(n=100, p=p, d=d, concentration_factor = 1, beta_factor = 5)
-data_lst<-Data_generator_vnf_reg_sparse(n=1000, p=p, d=d,SetUp = 1, NumOfNonZeroBeta=c(6, 10, 15))
+data_lst<-Data_generator_vnf_reg_sparse(n=500, p=p, d=d,SetUp = 2, NumOfNonZeroBeta=c(3, 3, 10))
 
 
 
@@ -41,19 +41,22 @@ beta_EM_Lasso_LAM=EM_BLASSO_Dir_regression_optimizer_V1_EMLAMBDA(Y=Y, X=X, beta_
 
 
 system.time(xx<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=Y,
-                                             X=X,
-                                             beta_init = NULL,
-                                             Max_EM_iter=1000,
-                                             cv_k_fold = 10,
-                                             cv_lambda_n = 50,
-                                             epsilon_lambda_range_min = .0001
-                                             )
-         )
-plot.cv.DirReg(xx1)
+                                                         X=X,
+                                                         beta_init = NULL,
+                                                         Max_EM_iter=1000,
+                                                         cv_k_fold = 10,
+                                                         cv_lambda_n = 50,
+                                                         epsilon_lambda_range_min = .001,
+                                                         lambda_Range_Type = 2
+                                                         )
+                                                      )
+
+plot.cv.Dir_Lasso_Reg(xx)
+plot.cv.Dir_Lasso_Reg_gg(xx, color_theme = 2)
 
 
 
-beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL, lasso_lambda = 0.0155,   EM_tolerence = .00001)
+beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL, lasso_lambda = max(xx$lambda.1se),   EM_tolerence = .00001)
 
 
 
@@ -104,7 +107,7 @@ cat(Beta_est2)
 
 
 #### New more efficient function
-Cross_validation_error_all_lambda<-function(Y=Y, X=X, cv_lasso_lambda=c(0.01, 0.011, 0.012), k_fold=10,  if_Print=FALSE, Max_EM_iter=10000, strategy_1=TRUE){
+Cross_validation_error_all_lambda_BCUp<-function(Y=Y, X=X, cv_lasso_lambda=c(0.01, 0.011, 0.012), k_fold=10,  if_Print=FALSE, Max_EM_iter=10000, strategy_1=TRUE){
   n= dim(Y)[1]
   col_Num=dim(Y)[2]
   X_col_Num= dim(X)[2]
@@ -121,8 +124,8 @@ Cross_validation_error_all_lambda<-function(Y=Y, X=X, cv_lasso_lambda=c(0.01, 0.
       start=sample_per_set*(i-1)+1
       end=sample_per_set*(i)
       sel_rows<-start:end
-      Y_train= Y[sel_rows, ]; X_train= X[sel_rows, ]
-      Y_test= matrix(Y[-sel_rows, ],ncol = col_Num); X_test= matrix(X[-sel_rows, ], ncol=X_col_Num)
+      Y_train= Y[-sel_rows, ]; X_train= X[-sel_rows, ]
+      Y_test= matrix(Y[sel_rows, ],ncol = col_Num); X_test= matrix(X[sel_rows, ], ncol=X_col_Num)
       beta_init=NULL
       #browser()
       for(lambda_id in 1:N_lambda){

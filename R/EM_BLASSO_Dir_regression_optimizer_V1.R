@@ -49,6 +49,7 @@ EM_BLASSO_Dir_regression_optimizer_V1<-function(Y,
   ###################################################################################################
   while(   ((EMiter<Max_EM_iter)&&(diff>EM_tolerence))  ){
     ET<-ComputeD_ET(betaMat_old = betaMat_old, X = X, nu = nu)
+
     SQRT_D_ET_X= sqrt(ET)*X #sweep(X, MARGIN=1,sqrt(ET), `*`) #diag(sqrt(ET))%*% X #=
     #SQRT_D_ET_X= diag(sqrt(ET))%*% X
 
@@ -61,12 +62,13 @@ EM_BLASSO_Dir_regression_optimizer_V1<-function(Y,
     #NEG_SQRT_D_ET= diag(1/sqrt(ET))
     #I_KRON_NEG_SQRT_D_ET_Y= kronecker(I_d, NEG_SQRT_D_ET, FUN = "*")%*% as.vector(Y)/2
     I_KRON_NEG_SQRT_D_ET_Y= as.vector((1/sqrt(ET))*Y/2) # = NEG_SQRT_D_ET%*%Y/2
-    I_KRON_NEG_SQRT_D_ET_Y_1= (1/sqrt(ET))*Y/2
+    #I_KRON_NEG_SQRT_D_ET_Y_1= (1/sqrt(ET))*Y/2
 
     #mStandard_Lasso_fit = glmnet(x =SQRT_D_ET_X , y = I_KRON_NEG_SQRT_D_ET_Y_1, family = "mgaussian", lambda=lasso_lambda, alpha =1 )
     #mbetaMat_opt<- as.matrix(do.call(cbind, mStandard_Lasso_fit$beta))
 
-
+  #if(any(is.nan(I_KRON_SQRT_D_ET_X))){browser()}
+  # if(any(is.nan(I_KRON_NEG_SQRT_D_ET_Y))){browser()}
     #Standard_Lasso_fit_hm=lasso_coord_desc(X=I_KRON_SQRT_D_ET_X,y=I_KRON_NEG_SQRT_D_ET_Y,beta=c(beta_init),lambda=lasso_lambda,tol=1e-6,maxiter=1000 )
     #betaMat_opt_sf_hm
     Standard_Lasso_fit = glmnet(x =I_KRON_SQRT_D_ET_X , y = I_KRON_NEG_SQRT_D_ET_Y, family = "gaussian", lambda=lasso_lambda, alpha = 1)
@@ -101,7 +103,7 @@ EM_BLASSO_Dir_regression_optimizer_V1<-function(Y,
 
 Predict_Y <- function(Beta_hat, X_new){
   Y_unnorm  <- X_new%*% (Beta_hat)
-  Y_hat     <- t(apply(Y_unnorm, MARGIN =1,  function(y){return(y/sqrt(sum(y^2)))} ))
+  Y_hat     <- t(apply(Y_unnorm, MARGIN =1,  function(y){return(y/(sqrt(sum(y^2)))+1e-20)} ))
   return(Y_hat)
 }
 
@@ -137,8 +139,8 @@ Cross_validation_error_all_lambda<-function(Y=Y, X=X, cv_lasso_lambda=NULL, k_fo
     start=sample_per_set*(i-1)+1
     end=sample_per_set*(i)
     sel_rows<-start:end
-    Y_train= Y[sel_rows, ]; X_train= X[sel_rows, ]
-    Y_test= matrix(Y[-sel_rows, ],ncol = col_Num); X_test= matrix(X[-sel_rows, ], ncol=X_col_Num)
+    Y_train= Y[-sel_rows, ]; X_train= X[-sel_rows, ]
+    Y_test= matrix(Y[sel_rows, ],ncol = col_Num); X_test= matrix(X[sel_rows, ], ncol=X_col_Num)
     beta_init=NULL
     #browser()
     for(lambda_id in 1:N_lambda){
@@ -155,13 +157,12 @@ Cross_validation_error_all_lambda<-function(Y=Y, X=X, cv_lasso_lambda=NULL, k_fo
                                                       Max_EM_iter=Max_EM_iter,
                                                       Convergence_loss=FALSE,
                                                       if_Print=if_Print
-      )
+                                                      )
 
-      Y_hat= Predict_Y(Beta_hat =Beta_est, X_new = X_test )
-      Err[lambda_id, i]= Compute_Error(Y_true =Y_test,Y_hat=Y_hat  )
-    }
-    print(paste0("Cross Validated Error computation is completed for all lambda and for the Testing Fold Number= ",i ))
-
+      Y_hat= Predict_Y(Beta_hat = Beta_est, X_new = X_test )
+      Err[lambda_id, i]= Compute_Error(Y_true = Y_test, Y_hat = Y_hat  )
+      }
+      print(paste0("Cross Validated Error computation is completed for all lambda and for the Testing Fold Number= ",i ))
   }
   rownames(Err)=paste0("Lambda_", 1:length(cv_lasso_lambda))
   colnames(Err)=paste0("Fold_", 1:k)
@@ -209,9 +210,9 @@ Cross_validation_error<-function(Y=Y, X=X, lasso_lambda=.001, k_fold=4,replicati
                 start=sample_per_set*(i-1)+1
                 end=sample_per_set*(i)
                 sel_rows<-start:end
-                Y_train= Y[sel_rows, ]; X_train= X[sel_rows, ]
-                Y_test= matrix(Y[-sel_rows, ],ncol = col_Num); X_test= matrix(X[-sel_rows, ], ncol=X_col_Num)
-
+                Y_train= Y[-sel_rows, ]; X_train= X[-sel_rows, ]
+                Y_test= matrix(Y[sel_rows, ],ncol = col_Num); X_test= matrix(X[sel_rows, ], ncol=X_col_Num)
+                print(paste0("dimension of X in Training Set=", dim(X_train)))
                 Beta_est<-EM_BLASSO_Dir_regression_optimizer_V1(Y=Y_train,
                            X=X_train,
                            beta_init=NULL,
@@ -287,15 +288,15 @@ EM_BLASSO_Dir_regression_optimizer_V0.cv<-function(Y,
   #browser()
   #plot(cv_lasso_lambda, cvm)
 
-  cv_lst=list(
-    lambda=cv_lasso_lambda,
-    cvm=cvm,
-    cvsd=cvsd,
-    cvup=cvup,
-    cvlo=cvlo,
-    lambda.min=lambda.min,
-    lambda.1se=lambda.min.1se
-  )
+    cv_lst=list(
+                lambda=cv_lasso_lambda,
+                cvm=cvm,
+                cvsd=cvsd,
+                cvup=cvup,
+                cvlo=cvlo,
+                lambda.min=lambda.min,
+                lambda.1se=lambda.min.1se
+              )
   return(cv_lst)
 }
 
@@ -314,29 +315,35 @@ EM_BLASSO_Dir_regression_optimizer_V1.cv<-function(Y,
                                                    if_Print=TRUE,
                                                    cv_k_fold=10,
                                                    cv_lambda_n=100,
-                                                   epsilon_lambda_range_min=.0001){
+                                                   epsilon_lambda_range_min=.0001,
+                                                   lambda_Range_Type=2){
 
 
   #browser()
   if(is.null(cv_lasso_lambda)){
-    #lso<-cv.glmnet(x=kronecker(diag(d), X), y=c(Y))
-    #Max_lambda<-max(lso$lambda)
-    xx_kron<-kronecker(diag(d), X);y_vec=c(Y)
-    #Max_lambda<-min( apply(Y, MARGIN = 2, FUN = function(yy){ max(abs(colSums(X*yy)))/length(yy)}))
-    Max_lambda<- max(abs(colSums(xx_kron*y_vec)))/length(y_vec)
-    #cv_lasso_lambda=seq(0, Max_lambda, length=cv_lambda_n)
-    cv_lasso_lambda=round(exp(seq(log(Max_lambda*epsilon_lambda_range_min), log(Max_lambda), length.out = cv_lambda_n)), digits = 10)
-  }
-  #browser()
-  cvm=cvsd=cvup=cvlo=0*cv_lasso_lambda
+        if(lambda_Range_Type!=1){
+              lso<-cv.glmnet(x=kronecker(diag(d), X), y=c(Y))
+              #cv_lasso_lambda<-(lso$lambda)
+              Max_lambda=max(lso$lambda)
+        }
+         if(lambda_Range_Type==1){
+                    xx_kron<-kronecker(diag(d), X);y_vec=c(Y)
+                    #Max_lambda<-mean( apply(Y, MARGIN = 2, FUN = function(yy){ max(abs(colSums(X*yy)))/length(yy)}))
+                   Max_lambda<- 2*max(abs(colSums(xx_kron*y_vec)))/length(y_vec)
+                   #cv_lasso_lambda=seq(0, Max_lambda, length=cv_lambda_n)
+         }
+         cv_lasso_lambda=round(exp(seq(log(Max_lambda*epsilon_lambda_range_min), log(Max_lambda), length.out = cv_lambda_n)), digits = 10)
+    }
+      #browser()
+      cvm=cvsd=cvup=cvlo=0*cv_lasso_lambda
 
 
-cv_Err_Table<-Cross_validation_error_all_lambda(Y=Y, X=X,cv_lasso_lambda=cv_lasso_lambda ,k_fold = cv_k_fold,Max_EM_iter = Max_EM_iter,  if_Print=FALSE)
+    cv_Err_Table<-Cross_validation_error_all_lambda(Y=Y, X=X,cv_lasso_lambda=cv_lasso_lambda ,k_fold = cv_k_fold,Max_EM_iter = Max_EM_iter,  if_Print=FALSE)
 
-cvm<-apply(cv_Err_Table, MARGIN = 1, FUN = mean)
-cvsd<-apply(cv_Err_Table, MARGIN = 1, FUN = sd)
-cvup=cvm+ 2*cvsd
-cvlo= cvm- 2*cvsd
+    cvm<-apply(cv_Err_Table, MARGIN = 1, FUN = mean)
+    cvsd<-apply(cv_Err_Table, MARGIN = 1, FUN = sd)
+    cvup=cvm+ 2*cvsd
+    cvlo= cvm- 2*cvsd
 
   which_min_id<-which.min(cvm)
   lambda.min=cv_lasso_lambda[which_min_id]
@@ -348,15 +355,16 @@ cvlo= cvm- 2*cvsd
   #plot(cv_lasso_lambda, cvm)
 
    cv_lst=list(
-    lambda=cv_lasso_lambda,
-    cvm=cvm,
-    cvsd=cvsd,
-    cvup=cvup,
-    cvlo=cvlo,
-    lambda.min=lambda.min,
-    lambda.1se=lambda.min.1se,
-    cv_Error_Table=cv_Err_Table
-  )
+              lambda=cv_lasso_lambda,
+              cvm=cvm,
+              cvsd=cvsd,
+              cvup=cvup,
+              cvlo=cvlo,
+              lambda.min=lambda.min,
+              lambda.1se=max(lambda.min.1se),
+              cv_Error_Table=cv_Err_Table
+              )
+
   return(cv_lst)
 }
 
@@ -369,7 +377,7 @@ cvlo= cvm- 2*cvsd
 ###################################
 
 #' @export
-plot.cv.DirReg<-function(cvobj,sign.lambda=1,...){
+plot.cv.Dir_Lasso_Reg<-function(cvobj,sign.lambda=1,...){
   #cvobj=x
   xlab = expression(Log(lambda))
   #  xlab="log(Lambda)"
@@ -404,5 +412,97 @@ error.bars <-
   }
 
 
+
+
+########## Advanced veriosn of the plot need ggplot
+
+#' @export
+plot.cv.Dir_Lasso_Reg_gg<-function(lst,
+                                   bar_col="darksalmon",
+                                   alpha_bar=.8,
+                                   marked_region_col="darkseagreen1",
+                                   alpha_marked_region=.8,
+                                   Arrow_Mark_Lambda_Min=TRUE,
+                                   color_theme=NULL){
+
+  # Need library(ggplot)
+  # Need library(ggfx)
+  if(color_theme==1){
+    bar_col="darksalmon";alpha_bar=.9;  marked_region_col="darkseagreen1";  alpha_marked_region=.7;Arrow_Mark_Lambda_Min=TRUE
+  }
+  if(color_theme==2){
+    bar_col="darkorchid";alpha_bar=.9;  marked_region_col="darkolivegreen2";  alpha_marked_region=.7;Arrow_Mark_Lambda_Min=TRUE
+  }
+  if(color_theme==1){
+    bar_col="darksalmon";alpha_bar=.9;  marked_region_col="darkseagreen1";  alpha_marked_region=.7;Arrow_Mark_Lambda_Min=TRUE
+  }
+  if(color_theme==3){
+    bar_col="lightskyblue";alpha_bar=.9;  marked_region_col="lightseagreen";  alpha_marked_region=.7;Arrow_Mark_Lambda_Min=TRUE
+  }
+  xx=lst
+
+  log_lambda=log(xx$lambda)
+  diff<-(log_lambda[2]-log_lambda[1])/4
+
+  x_min_all=log_lambda-diff
+  x_max_all=log_lambda+diff
+
+  y_min_all= xx$cvlo
+  y_max_all=xx$cvup
+  min_y_min= min(y_min_all)*.9
+  max_y_max=max(y_max_all)*1.2
+  x_marked_min<-log(xx$lambda.min)-2*diff
+  x_marked_max<-log(max(xx$lambda.1se))+2*diff
+
+  ########################## Arrow Specification #####  ##############################################
+              arrow1_x_start<-log(xx$lambda.min);    arrow1_x_end<-log(xx$lambda.min)
+              arrow1_y_start<-max_y_max*.98;    arrow1_y_end<-min(y_min_all)*.82
+
+              arrow2_x_start<-log(max(xx$lambda.1se));    arrow2_x_end<-log(max(xx$lambda.1se))
+              arrow2_y_start<-max_y_max*.98;    arrow2_y_end<-min(y_min_all)*.82
+
+  ########################################   ####################   #################################
+  #browser()
+  df<-data.frame(x=log_lambda, y= xx$cvm)
+  p <- ggplot(df, aes(x = x, y = y))
+  p=p+with_outer_glow(annotate("rect", xmin =x_marked_min , xmax =x_marked_max , ymin = min_y_min, ymax = max_y_max,
+                               alpha = alpha_marked_region,fill =marked_region_col, col="white",linewidth=.7 ),sigma = 2, x_offset = 0, y_offset = 0, colour = "black")
+  #with_outer_glow
+  for(i in 1:length(y_min_all)){
+           p<-p+with_outer_glow(annotate("rect", xmin = x_min_all[i], xmax = x_max_all[i], ymin = y_min_all[i], ymax = y_max_all[i],
+                                  alpha = alpha_bar,fill = bar_col, col=bar_col, linewidth=.2),sigma = 2, x_offset = 0, y_offset = 0, colour = "black")
+  }
+
+  p<-p+ with_shadow(geom_line(linewidth=.2, col="white"),sigma = 2, x_offset = 0, y_offset = 0, colour = "black" )
+  p<-p+with_shadow(geom_point(col="black", size=1.3), sigma = 2, x_offset = 0, y_offset = 0, colour = "white")
+  #p<-p+geom_point(col="black", size=.5)
+  p<-p+labs(y = "Cross-Validation Error", x = expression(Log(lambda)))
+
+      #browser()
+      if(Arrow_Mark_Lambda_Min){
+                    p<-p+with_shadow(annotate("segment", x =arrow1_x_start , y = arrow1_y_start*.9, xend = arrow1_x_end, yend = arrow1_y_end,
+                                  size = .3, linejoin = "mitre",arrow = arrow(type = "closed", length = unit(0.01, "npc")), col="white")
+                                  ,sigma = 2, x_offset = 0, y_offset = 0, colour = "black")
+                    p<-p+with_shadow(annotate("segment", x =arrow2_x_start , y = arrow2_y_start*.9, xend = arrow2_x_start, yend = arrow2_y_end,
+                                  size = .3, linejoin = "mitre",arrow = arrow(type = "closed", length = unit(0.01, "npc")), col="white")
+                                  ,sigma = 2, x_offset = 0, y_offset = 0, colour = "black")
+
+                    p<-p+with_shadow(annotate("segment", x =arrow1_x_start , y = arrow1_y_start, xend = arrow1_x_end, yend = arrow1_y_start*.9,
+                                  size = 4.2, linejoin = "mitre", arrow = arrow(type = "closed", length = unit(0.01, "npc")), col="darkolivegreen2")
+                                  ,sigma = 2, x_offset = 0, y_offset = 0, colour = "black")
+                    p<-p+with_shadow(annotate("segment", x =arrow2_x_start , y = arrow2_y_start, xend = arrow2_x_end, yend = arrow2_y_start*.9,
+                                  size = 4.2, linejoin = "mitre",arrow = arrow(type = "closed", length = unit(0.01, "npc")), col="darkolivegreen2")
+                                  ,sigma = 2, x_offset = 0, y_offset = 0, colour = "black")
+
+
+                    p<-p+annotate("text", x=arrow1_x_start,y=arrow1_y_start, label =  expression(Log(lambda["min"])), color = "black", angle = 90, hjust = 1.5, size = 2.75, fontface = "bold")
+                    p<-p+annotate("text", x=arrow2_x_start,y=arrow1_y_start, label =  expression(Log(lambda["1.SE"])), color = "black", angle = 90, hjust = 1.5, size = 2.75, fontface = "bold")
+
+                    #p<-p+annotate("text", x=arrow1_x_start,y=arrow1_y_start, label =  expression(Log(lambda["min"])), color = "black", angle = 0, hjust = .1, size = 2.5, fontface = "bold")
+                    #p<-p+annotate("text", x=arrow2_x_start,y=arrow1_y_start, label =  expression(Log(lambda["1SE"])), color = "black", angle = 0, hjust = .1, size = 2.5, fontface = "bold")
+
+      }
+  return(p)
+}
 
 
