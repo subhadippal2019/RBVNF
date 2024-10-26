@@ -14,6 +14,14 @@ return(Tau_ij_all)
 
 
 
+Generate_Prior_Lambda_HyperGamma<-function(Lambda_lower, Lambda_upper, info_weight=1 ){
+  if(info_weight<.5){info_weight=.5}
+  approx_mean        <- ((Lambda_lower^2+Lambda_upper^2)/2)
+  approx_sd          <- ((Lambda_upper^2-Lambda_lower^2)/(4*info_weight))
+  Prior_Lambda_Hyper <- list(shape=approx_mean^2/approx_sd, rate=approx_mean/approx_sd)
+  return(Prior_Lambda_Hyper)
+}
+
 
 
 #' Performs a Bayesian regression for the directional responses.
@@ -43,17 +51,29 @@ return(Tau_ij_all)
 #' library(cowplot) #
 #'Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
 #' @export
-MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL, beta_init=NULL, Sigma_init=NULL, MCSamplerSize=50, K=100, eps_accuracy=.00000001, lasso_lambda=.01, Sample_lasso_lambda=NULL){
+MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
+                                                      beta_init=NULL,
+                                                      Sigma_init=NULL,
+                                                      MCSamplerSize=50,
+                                                      K=100,
+                                                      eps_accuracy=.00000001,
+                                                      lasso_lambda=.01,
+                                                      Sample_lasso_lambda=NULL # c(lambda_min, lambda_max, info_weight=1)
+                                                      ){
 
   n=dim(Y)[1]; p=dim(X)[2]; d=dim(Y)[2]; nu=d/2-1
+  names_X=colnames(X)
   #######################################################################################################
   #######################################################################################################
   ####################################Initial Value######################################################
 
   if(!is.null(Sample_lasso_lambda)){
-    lambda_prior_rate= Sample_lasso_lambda[2]
-    lambda_prior_shape=Sample_lasso_lambda[1]
-    Sample_lasso_lambda=TRUE
+          Prior_Lambda_Hyper<-Generate_Prior_Lambda_HyperGamma(Lambda_lower  = Sample_lasso_lambda[1],
+                                                               Lambda_upper =Sample_lasso_lambda[2],
+                                                               info_weight =Sample_lasso_lambda[3]  )
+          lambda_prior_rate= Prior_Lambda_Hyper$rate
+          lambda_prior_shape=Prior_Lambda_Hyper$shape
+          Sample_lasso_lambda=TRUE
   }
   if(is.null(Sample_lasso_lambda)){
     Sample_lasso_lambda=FALSE}
@@ -61,8 +81,10 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL, beta_init=NULL
 
   if(is.null(beta_init)){
     print("Default Procedure using EM is being used to obtain initial value of the regression coefficients that will be  used to start the MCMC Data Augmentation Algorithm. Iteration number of EM algorithm is being printed untill convergence." )
-    beta_init=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL,EM_tolerence = .001, Max_EM_iter = 500)
-  }
+    #beta_init=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL,EM_tolerence = .001, Max_EM_iter = 500)
+    beta_init=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL,EM_tolerence = .001, Max_EM_iter = 500, lasso_lambda = lasso_lambda)
+    #EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL, lasso_lambda = max(xx$lambda.1se),   EM_tolerence = .00001)
+    }
   else {
 
     if(!is.matrix(beta_init)){
@@ -236,7 +258,8 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL, beta_init=NULL
 
   MC<-list(         Mc_Beta=  beta_all,
                     T_aux_var=T_aug_all,
-                    Tau_ij_sq_all= Tau_ij_sq_all_store
+                    Tau_ij_sq_all= Tau_ij_sq_all_store,
+                    lasso_lambda_all=lasso_lambda_all
                     )
 
 

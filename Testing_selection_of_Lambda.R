@@ -45,7 +45,7 @@ system.time(xx<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=Y,
                                                          beta_init = NULL,
                                                          Max_EM_iter=1000,
                                                          cv_k_fold = 10,
-                                                         cv_lambda_n = 50,
+                                                         cv_lambda_n = 25,
                                                          epsilon_lambda_range_min = .001,
                                                          lambda_Range_Type = 2
                                                          )
@@ -64,9 +64,7 @@ beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL, 
 
 
 
-
-
-lst_BLASSO_Beta_MCMC=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =1000, lasso_lambda = .5, Sample_lasso_lambda = c(1, 10))
+lst_BLASSO_Beta_MCMC=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =200, lasso_lambda =  max(xx$lambda.1se), Sample_lasso_lambda = c(xx$lambda.min, max(xx$lambda.1se), 1))
 lst=lst_BLASSO_Beta_MCMC
 
 
@@ -81,15 +79,15 @@ lst_BLASSO_Beta_MCMC=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y,
                                                            beta_init = NULL,
                                                            MCSamplerSize =1000,
                                                            lasso_lambda = .005,
-                                                           Sample_lasso_lambda = c(100, 100000)
+                                                           Sample_lasso_lambda = c(.01, .5, 1)
                                                            ) ## lambda_median=sqrt(1/100)
 
 lst=lst_BLASSO_Beta_MCMC
 Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
-Plot_MCMC_Diag_Triplet(lst$RunDetails$lasso_lambda,y_lab_text = bquote(lambda))
+Plot_MCMC_Diag_Triplet(lst$MC$lasso_lambda_all,y_lab_text = bquote(lambda))
 abs(Beta_est1)-abs(Beta_est)
 
-i=1;j= 1
+i=4;j= 2
 Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
 Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
 Beta_sd=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)

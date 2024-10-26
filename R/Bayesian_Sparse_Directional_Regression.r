@@ -88,6 +88,7 @@ Data_generator_vnf_reg_sparse<-function(n=100,p=30, d=3,NumOfNonZeroBeta=c(5, 4,
 #' @export
 MCMC_Dir_regression_sampler_sparse_V1<-function(Y, X, prior, beta_init_vec, Sigma_init=NULL, MCSamplerSize=50, K=100,eps_accuracy=.00000001){
 
+  names_X=colnames(X)
   n=dim(Y)[1]; p=dim(X)[2]; d=dim(Y)[2]; nu=d/2-1
   #######################################################################################################
   #######################################################################################################

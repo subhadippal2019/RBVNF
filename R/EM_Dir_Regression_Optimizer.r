@@ -23,7 +23,9 @@
                                                beta_init=NULL,
                                                EM_tolerence=.0001,
                                                Max_EM_iter=10000){
+
          n=dim(Y)[1]; p=dim(X)[2]; d=dim(Y)[2]; nu=d/2-1
+         names_X=colnames(X)
 
               if(is.null(prior)){
                 # tau_square=10000
@@ -58,7 +60,7 @@
                       print(EMiter)
             }
             #end While ########################################################################################
-
+              rownames(betaMat_opt)=names_X; colnames(betaMat_opt)= paste0("Y_", 1:dim(Y)[2])
       return(betaMat_opt)
       }
 

@@ -270,10 +270,15 @@ X=cbind(X_categorical, X_numerical)
   save(lst_germany, file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/workspaces/Germany_RUN_Example1_11000.rdata")
 
 
-  lst_germany_LASSO=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =200, lasso_lambda =.1, Sample_lasso_lambda = c(1, 100) )
 
 
-  lst=lst_germany_LASSO
+
+
+
+  lst_germany_LASSO=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =200, lasso_lambda =.1, Sample_lasso_lambda = c(.1, .3, 1) )
+
+
+lst=lst_germany_LASSO
 Calculate_DIC(lst_germany_LASSO)
 
   i=1;j= 1
@@ -421,3 +426,121 @@ xx<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=Y,
   beta_EM_Lasso_LAM=EM_BLASSO_Dir_regression_optimizer_V1_EMLAMBDA(Y=Y, X=X, beta_init = NULL,   EM_tolerence = .0001, lasso_lambda = .01)
 
 
+
+
+
+  ############## LASSO OPTIMIZATION FIT #################
+  ############## LASSO OPTIMIZATION FIT #################
+  ############## LASSO OPTIMIZATION FIT #################
+  ############## LASSO OPTIMIZATION FIT #################
+  germany <- read.dta("/Users/subhadippal/Dropbox/projects/Regression of Directional data/dataverse_files/germandata.dta")
+  #attach(germany)
+  summary(germany)
+  # convert counterclockwise angles
+  germany$direction.rad <- (360-germany$direction) / 360 * 2* pi
+  #germany$direction.rad <- as.circular(germany$direction.rad, units = "radians",
+
+  #Constructing Response and Design Matrix
+  Y= cbind(cos(germany$direction.rad), sin(germany$direction.rad))
+  X_numerical= data.frame(
+                     unemp=germany$unemp,
+                     outofwed=germany$outofwed,
+                     year=germany$year,
+                     yearSQ=(germany$year)^2/100
+                     #outofwed2_1=germany$outofwed2,
+                     #unemplag1=germany$unemplag,
+                     #unempdiff1=germany$unempdiff,
+                     #divorce1=germany$divorce,
+                     #divorcelag1=germany$divorcelag,
+                     #divorcediff1=germany$divorcediff
+                     )
+
+  X_categorical=data.frame(
+                       Intercept=replicate(n = length(germany$direction.rad),1 ),
+                       CduCsu=germany$cducsu,
+                       Spd=germany$spd,
+                       Green=germany$green,
+                       #Pds=germany$pds,
+                       Reunification=germany$reunification
+                       #fdp1=germany$fdp
+                       )
+
+  X_numerical =scale(X_numerical, scale = FALSE)
+  X=cbind(X_categorical, X_numerical)
+  X=as.matrix(X)
+#names(X)= names()
+
+  n=dim(Y)[1] # NUmber of the samples
+  p=dim(X)[2] # NUmber of the regression covariates
+  d=dim(Y)[2] # Number of direcions in the direcional data
+  #### bbeta is a matrix of dimension p\times d
+  #bbeta=matrix( rnorm(p*d), nrow=p, ncol=d)
+  sigma_square=1
+  tau_square=1000
+
+  beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
+  beta_init=beta_EM
+  lst_germany=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =100)
+  #save(lst_germany, file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/workspaces/Germany_RUN_Example1_11000.rdata")
+
+
+
+  ############## LASSO OPTIMIZATION FIT #################
+  system.time(xx<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=Y,
+                                                           X=X,
+                                                           beta_init = NULL,
+                                                           Max_EM_iter=1000,
+                                                           cv_k_fold = 60,
+                                                           cv_lambda_n = 25,
+                                                           epsilon_lambda_range_min = .001,
+                                                           lambda_Range_Type = 2
+  )
+  )
+
+  plot.cv.Dir_Lasso_Reg(xx)
+  plot.cv.Dir_Lasso_Reg_gg(xx, color_theme = 1)
+
+
+
+  beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL, lasso_lambda = max(xx$lambda.min),   EM_tolerence = .00001)
+
+
+  # Ideal direction = β0+β1 · Unemp + β2 · Outofwed + β3 · Reunification +
+  #  β4 · SPD + β5 · CDU/CSU + β6 · Greens + β7 · PDS +
+  #  β8 · Year + β9 · YearSQ + .
+
+  #Constructing Response and Design Matrix
+
+
+
+
+  ##############   ##############   ##############   ##############   ##############
+
+
+
+
+  lst_BLASSO_Beta_MCMC=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y,
+                                                             X=X,
+                                                             prior=NULL,
+                                                             beta_init = NULL,
+                                                             MCSamplerSize =1000,
+                                                             lasso_lambda = .005,
+                                                             Sample_lasso_lambda = c(xx$lambda.min, xx$lambda.1se, 5)
+                                                             ) ## lambda_median=sqrt(1/100)
+
+  lst=lst_BLASSO_Beta_MCMC
+  Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
+  Plot_MCMC_Diag_Triplet(lst$MC$lasso_lambda_all,y_lab_text = bquote(lambda))
+  #abs(Beta_est1)-abs(Beta_est)
+
+
+
+
+  i=4;j= 2
+  Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
+  Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
+  Beta_sd=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)
+  Beta_est1<- matrix(paste0(  round(c(Beta_est),2),"(", round(c(Beta_sd),2),")& "), nrow=10)
+  Beta_est2= cbind(paste(colnames(X),"&"), Beta_est1, paste("\\\\"))
+  paste0(Beta_est2, collapse="//")
+  cat(Beta_est2)

@@ -23,6 +23,7 @@ EM_BLASSO_Dir_regression_optimizer_V1<-function(Y,
                                          if_Print=TRUE){
   prior=NULL
   n=dim(Y)[1]; p=dim(X)[2]; d=dim(Y)[2]; nu=d/2-1
+  names_X=colnames(X)
   #browser()
   if(is.null(prior)){
     # tau_square=10000
@@ -82,12 +83,12 @@ EM_BLASSO_Dir_regression_optimizer_V1<-function(Y,
     diff_vec=c(diff_vec, diff)
     betaMat_old<-betaMat_opt
     ###########################
-    if(sum(betaMat_opt^2)<0.000000001){ EMiter=Max_EM_iter}
+    if(sum(betaMat_opt^2)<0.0000001){ EMiter=Max_EM_iter}
     EMiter=EMiter+1
     if(if_Print){print(EMiter)}
   }
   #end While ########################################################################################
-
+  rownames(betaMat_opt)=names_X; colnames(betaMat_opt)= paste0("Y_", 1:dim(Y)[2])
   if(Convergence_loss){ return_lst<-list(betaMat_opt=betaMat_opt,conv=diff_vec) }
   if(!Convergence_loss){ return_lst=betaMat_opt }
 
@@ -320,6 +321,7 @@ EM_BLASSO_Dir_regression_optimizer_V1.cv<-function(Y,
 
 
   #browser()
+
   if(is.null(cv_lasso_lambda)){
         if(lambda_Range_Type!=1){
               lso<-cv.glmnet(x=kronecker(diag(d), X), y=c(Y))
@@ -441,6 +443,8 @@ plot.cv.Dir_Lasso_Reg_gg<-function(lst,
   }
   xx=lst
 
+  #browser()
+
   log_lambda=log(xx$lambda)
   diff<-(log_lambda[2]-log_lambda[1])/4
 
@@ -449,8 +453,8 @@ plot.cv.Dir_Lasso_Reg_gg<-function(lst,
 
   y_min_all= xx$cvlo
   y_max_all=xx$cvup
-  min_y_min= min(y_min_all)*.9
-  max_y_max=max(y_max_all)*1.2
+  min_y_min= min(y_min_all, na.rm = TRUE)*.9
+  max_y_max=max(y_max_all, na.rm = TRUE)*1.2
   x_marked_min<-log(xx$lambda.min)-2*diff
   x_marked_max<-log(max(xx$lambda.1se))+2*diff
 
