@@ -58,7 +58,11 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
                                                       K=100,
                                                       eps_accuracy=.00000001,
                                                       lasso_lambda=.01,
-                                                      Sample_lasso_lambda=NULL # c(lambda_min, lambda_max, info_weight=1)
+                                                      Sample_lasso_lambda=NULL, # c(lambda_min, lambda_max, info_weight=1)
+                                                      lasso_lambda_spec=list(
+                                                                              Type="SAMPLE",
+                                                                              lasso_lambda=.01,
+                                                                              hyper_lambda_selector= list(Lambda_lower=0.01, Lambda_upper=0.02,info_weight=10 ) )
                                                       ){
 
   n=dim(Y)[1]; p=dim(X)[2]; d=dim(Y)[2]; nu=d/2-1
@@ -67,15 +71,29 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
   #######################################################################################################
   ####################################Initial Value######################################################
 
-  if(!is.null(Sample_lasso_lambda)){
-          Prior_Lambda_Hyper<-Generate_Prior_Lambda_HyperGamma(Lambda_lower  = Sample_lasso_lambda[1],
-                                                               Lambda_upper =Sample_lasso_lambda[2],
-                                                               info_weight =Sample_lasso_lambda[3]  )
-          lambda_prior_rate= Prior_Lambda_Hyper$rate
-          lambda_prior_shape=Prior_Lambda_Hyper$shape
-          Sample_lasso_lambda=TRUE
+  #if(!is.null(Sample_lasso_lambda)){
+  if(lasso_lambda_spec$Type=='SAMPLE'){
+    if(is.null(lasso_lambda_spec$hyper_lambda_selector)){
+      epsilon_lambda_range_min=.0001
+      lso<-cv.glmnet(x=kronecker(diag(d), X), y=c(Y))
+      #cv_lasso_lambda<-(lso$lambda)
+      lasso_lambda_spec$hyper_lambda_selector= list(Lambda_lower=min(lso$lambda), Lambda_upper=max(lso$lambda),info_weight=4)
+      #cv_lasso_lambda=round(exp(seq(log(Max_lambda*epsilon_lambda_range_min), log(Max_lambda), length.out = cv_lambda_n)), digits = 10)
+
+    }
+    if(!is.null(lasso_lambda_spec$hyper_lambda_selector)){
+
+              Prior_Lambda_Hyper<-Generate_Prior_Lambda_HyperGamma(Lambda_lower  = lasso_lambda_spec$hyper_lambda_selector$Lambda_lower,
+                                                                   Lambda_upper =lasso_lambda_spec$hyper_lambda_selector$Lambda_upper,
+                                                                   info_weight =lasso_lambda_spec$hyper_lambda_selector$info_weight  )
+              lambda_prior_rate= Prior_Lambda_Hyper$rate
+              lambda_prior_shape=Prior_Lambda_Hyper$shape
+              Sample_lasso_lambda=TRUE
+    }
+
   }
-  if(is.null(Sample_lasso_lambda)){
+  if(lasso_lambda_spec$Type!='SAMPLE'){
+  #if(is.null(Sample_lasso_lambda)){
     Sample_lasso_lambda=FALSE}
 
 

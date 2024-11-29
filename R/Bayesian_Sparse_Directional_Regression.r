@@ -45,7 +45,7 @@ Data_generator_vnf_reg_sparse<-function(n=100,p=30, d=3,NumOfNonZeroBeta=c(5, 4,
                     }
               if( is.null(X)){ X = array(  rnorm(n*p, 0, 1), dim=c(n,p)    ) }
   }
-  if(SetUp!=1){
+  if(SetUp==2){
             print("Currently SetUp can be wither 1 or 2. Currently Using Default SetUp=2 ")
             if( is.null(beta)){
               beta =matrix(0 ,nrow=p, ncol=d )
@@ -54,6 +54,17 @@ Data_generator_vnf_reg_sparse<-function(n=100,p=30, d=3,NumOfNonZeroBeta=c(5, 4,
               }
             }
             if( is.null(X)){ X = array(  rnorm(n*p, 0, 1), dim=c(n,p)    ) }
+  }
+
+  if(SetUp>2){
+    print(" Currently Using Default SetUp=3 ")
+    if( is.null(beta)){
+      beta =matrix(0 ,nrow=p, ncol=d )
+      for(jj in 1:d){
+        beta[1:NumOfNonZeroBeta[1], jj] =  (2*rbinom(NumOfNonZeroBeta[1], 1, 0.7)-1)  *(runif(n = NumOfNonZeroBeta[1], min = NumOfNonZeroBeta[2], max = NumOfNonZeroBeta[3]))  #(2+.5/jj)^(-seq(-3,3.5,length.out =NumOfNonZeroBeta[jj] ))
+      }
+    }
+    if( is.null(X)){ X = array(  rnorm(n*p, 0, 1), dim=c(n,p)    ) }
   }
   #browser()rm(list=ls())
 

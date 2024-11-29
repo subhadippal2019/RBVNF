@@ -1,12 +1,12 @@
 
 
 n=1000 # NUmber of the samples
-p=8 # NUmber of the regression covariates
-d=10 # Number of direcions in the direcional data
+p=20 # NUmber of the regression covariates
+d=2 # Number of direcions in the direcional data
 
 #Test Lasso
 data_lst = Data_generator_vnf_reg(n=100, p=p, d=d, concentration_factor = 1, beta_factor = 5)
-data_lst<-Data_generator_vnf_reg_sparse(n=500, p=p, d=d,SetUp = 2, NumOfNonZeroBeta=c(3, 3, 10))
+data_lst<-Data_generator_vnf_reg_sparse(n=500, p=p, d=d,SetUp = 2, NumOfNonZeroBeta=c(4, 1, 10))
 
 
 
@@ -64,7 +64,11 @@ beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL, 
 
 
 
-lst_BLASSO_Beta_MCMC=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =200, lasso_lambda =  max(xx$lambda.1se), Sample_lasso_lambda = c(xx$lambda.min, max(xx$lambda.1se), 1))
+lst_BLASSO_Beta_MCMC=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =1000,
+                                                           lasso_lambda_spec = list(
+                                                             Type="SAMPLE",
+                                                             lasso_lambda=max(xx$lambda.1se),
+                                                             hyper_lambda_selector= list(Lambda_lower=xx$lambda.min, Lambda_upper=xx$lambda.1se,info_weight=10 ) ))
 lst=lst_BLASSO_Beta_MCMC
 
 
@@ -73,21 +77,23 @@ lst=lst_BLASSO_Beta_MCMC
 
 
 
-lst_BLASSO_Beta_MCMC=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y,
+lst_BLASSO_Beta_MCMC_sample_Lambda=MCMC_BLASSO_Dir_regression_sampler_V1(Y=Y,
                                                            X=X,
                                                            prior=NULL,
                                                            beta_init = NULL,
                                                            MCSamplerSize =1000,
-                                                           lasso_lambda = .005,
-                                                           Sample_lasso_lambda = c(.01, .5, 1)
-                                                           ) ## lambda_median=sqrt(1/100)
+                                                           lasso_lambda_spec = list(
+                                                                        Type="SAMPLE",
+                                                                         lasso_lambda=max(xx$lambda.1se),
+                                                                         hyper_lambda_selector= list(Lambda_lower=xx$lambda.min, Lambda_upper=xx$lambda.1se,info_weight=10 ) ))
 
-lst=lst_BLASSO_Beta_MCMC
+
+lst=lst_BLASSO_Beta_MCMC_sample_Lambda
 Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
 Plot_MCMC_Diag_Triplet(lst$MC$lasso_lambda_all,y_lab_text = bquote(lambda))
 abs(Beta_est1)-abs(Beta_est)
 
-i=4;j= 2
+i=10;j= 2
 Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
 Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
 Beta_sd=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)
