@@ -40,8 +40,8 @@ beta_EM_Lasso_LAM=EM_BLASSO_Dir_regression_optimizer_V1_EMLAMBDA(Y=Y, X=X, beta_
 #cv_set[which.min(val)]
 
 
-system.time(xx<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=Y,
-                                                         X=X,
+system.time(xx<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=data_lst$Y,
+                                                         X=data_lst$X,
                                                          beta_init = NULL,
                                                          Max_EM_iter=1000,
                                                          cv_k_fold = 10,
@@ -56,7 +56,7 @@ plot.cv.Dir_Lasso_Reg_gg(xx, color_theme = 2)
 
 
 
-beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL, lasso_lambda = max(xx$lambda.1se),   EM_tolerence = .00001)
+beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=data_lst$Y, X=data_lst$X, beta_init = NULL, lasso_lambda = max(xx$lambda.1se),   EM_tolerence = .00001)
 
 
 
