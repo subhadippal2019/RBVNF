@@ -523,13 +523,20 @@ library(ggfx)
                                                              X=X,
                                                              prior=NULL,
                                                              beta_init = NULL,
-                                                             MCSamplerSize =1000,
+                                                             MCSamplerSize =5500,
                                                              lasso_lambda = .005,
-                                                             Sample_lasso_lambda = c(xx$lambda.min, xx$lambda.1se, 5)
+                                                             Sample_lasso_lambda = NULL,
+                                                             lasso_lambda_spec=list(
+                                                                                   Type="SAMPLE",
+                                                                                   lasso_lambda=.01,
+                                                                                   hyper_lambda_selector=NULL)
                                                              ) ## lambda_median=sqrt(1/100)
 
+
+  save(lst_BLASSO_Beta_MCMC, file="/Users/subhadippal/Desktop/Lasso_Simulation_RBVNF/German_political_data_Lasso.RData")
   lst=lst_BLASSO_Beta_MCMC
   Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
+  Beta_sd=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)
   Plot_MCMC_Diag_Triplet(lst$MC$lasso_lambda_all,y_lab_text = bquote(lambda))
   #abs(Beta_est1)-abs(Beta_est)
 

@@ -7,8 +7,8 @@ location="/Users/subhadippal/Desktop/Lasso_Simulation_RBVNF/"
 
 
 
-all_d<-c(2 )
-all_DataId<-1:79
+all_d<-c(3)
+all_DataId<-c(1:97)
 #all_sampleSize<-c(750, 1000, 1500)
 Error_sim=array(data = NA, dim = c(length(all_DataId),length(all_d)))
 classification_Table= array(data = NA, dim = c(length(all_DataId),length(all_d),2 , 2))
@@ -34,16 +34,27 @@ for(simData_id in all_DataId ){
       True_beta_zero_nonzero<-c((Mc_obj_lso$Sim_Data_lst$beta!=0)*1)
       classification_Table[ simData_id,d_id  , ,]<-table(estimated_zero_nonzero, True_beta_zero_nonzero)
 
-      Error_sq<- mean((Beta_est_Post_Mean-True_beta)^2)
+      Error_sq<- (mean((Beta_est_Post_Mean-True_beta)^2)
       Error_sim[simData_id,d_id ]= Error_sq
 
    # }
   }
-  print(simData_id)
+  print(all_DataId[simData_id])
 }
 
 
+matrix(apply(X = classification_Table, MARGIN = c(2, 3, 4), FUN = sum),  nrow=2)
+matrix(apply(X = classification_Table, MARGIN = c(2, 3, 4), FUN = sd),  nrow=2)
 
-matrix(apply(X = classification_Table, MARGIN = c(2, 3,4), FUN = mean),  nrow=2)
-matrix(apply(X = classification_Table, MARGIN = c(2, 3,4), FUN = max),  nrow=2)
+misclassification_val_d_3=1:97*0-1
+for(i in 1:97){
+
+  misclassification_val_d_3[i]=classification_Table[i, 1, 2,1 ]/ sum(classification_Table[i, 1, ,1 ])
+}
+
+summary(misclassification_val_d_2)
+summary(misclassification_val_d_3)
+
+matrix(apply(X = classification_Table, MARGIN = c(2, 3, 4), FUN = function()),  nrow=2)
+matrix(apply(X = classification_Table, MARGIN = c(2, 3, 4), FUN = sd),  nrow=2)
 
