@@ -14,6 +14,7 @@ require(cowplot)
 library(grid)
 library(gridExtra)
   library(mvtnorm) #install.packages("pgdraw")
+  library(glmnet)
  # MCMCpack
   #Rfast::rvmf(n=1, mu=c(1,0,0), k=10)
  # library("rfast") #library("pgdraw")
@@ -31,6 +32,7 @@ load_additional_packages<-function(){
   library(ggplot2)
   require(dplyr)
   library(tidyverse)
-  library(rgdal)
-  library(rayshader)
+  #library(rgdal)
+  #library(rayshader)
+  library(ggfx)
 }
