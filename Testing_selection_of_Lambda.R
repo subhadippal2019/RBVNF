@@ -1,12 +1,17 @@
 
+# n=750   ; p=30       ; d=3
+# n=750   ; p=30       ; d=2
+# n=750   ; p=30       ; d=5
+# n=200   ; p=30       ; d=3
 
-n=1000 # NUmber of the samples
-p=20 # NUmber of the regression covariates
-d=2 # Number of direcions in the direcional data
+
+n=1000    # Number of the samples
+p=30      # Number of the regression covariates
+d=5      # Number of directions in the directional data
 
 #Test Lasso
-data_lst = Data_generator_vnf_reg(n=100, p=p, d=d, concentration_factor = 1, beta_factor = 5)
-data_lst<-Data_generator_vnf_reg_sparse(n=500, p=p, d=d,SetUp = 2, NumOfNonZeroBeta=c(4, 1, 10))
+data_lst  =   Data_generator_vnf_reg(n=2000, p=p, d=d, concentration_factor = 1, beta_factor = 5)
+data_lst  <-  Data_generator_vnf_reg_sparse(n=200, p=p, d=d,SetUp = 2, NumOfNonZeroBeta=c(4, 1, 10))
 
 
 
@@ -16,7 +21,7 @@ Y = data_lst$Y;X=data_lst$X;
 beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
 
 
-beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL,   EM_tolerence = .00001, lasso_lambda = .005)
+beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL,   EM_tolerence = .00001, lasso_lambda = .002)
 
 beta_EM_Lasso_LAM=EM_BLASSO_Dir_regression_optimizer_V1_EMLAMBDA(Y=Y, X=X, beta_init = NULL,   EM_tolerence = .00001, lasso_lambda = 0.025, scale_factor = 1) # EM recomendation is scale_factor=2
 
@@ -45,19 +50,28 @@ system.time(xx<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=data_lst$Y,
                                                          beta_init = NULL,
                                                          Max_EM_iter=1000,
                                                          cv_k_fold = 10,
-                                                         cv_lambda_n = 25,
-                                                         epsilon_lambda_range_min = .001,
+                                                         cv_lambda_n = 10,
+                                                         epsilon_lambda_range_min = .0001,
                                                          lambda_Range_Type = 2
                                                          )
                                                       )
 
 plot.cv.Dir_Lasso_Reg(xx)
-plot.cv.Dir_Lasso_Reg_gg(xx, color_theme = 2)
+plt_cv_lambda<-plot.cv.Dir_Lasso_Reg_gg(xx, color_theme = 2)
+
+lst_em_lasso_object<-list(crossValidation_xx=xx,datadata=data_lst,plt_cv_lambda=plt_cv_lambda, n=200, p=30, Num_nonZero=4, d=5 )
+save(lst_em_lasso_object, file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/workspaces/lst_em_lasso_object_n=200_p_30_d_5_nonzero_4.RData")
+
+
+ggsave(lst_em_lasso_object$plt_cv_lambda, width = 15, height = 7,
+       file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/DirReg_WriteUpShared/fig/lst_em_lasso_object_n=200_p_30_d_5_nonzero_4.pdf")
 
 
 
+load("/Users/subhadippal/Dropbox/projects/Regression of Directional data/workspaces/lst_em_lasso_object_n=200_p_30_nonzero_4.RData")
 beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=data_lst$Y, X=data_lst$X, beta_init = NULL, lasso_lambda = max(xx$lambda.1se),   EM_tolerence = .00001)
 
+beta_EM_Lasso1=EM_BLASSO_Dir_regression_optimizer_V1(Y=data_lst$Y, X=data_lst$X, beta_init = NULL, lasso_lambda = max(xx$lambda.min),   EM_tolerence = .00001)
 
 
 

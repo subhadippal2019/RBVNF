@@ -460,7 +460,7 @@ xx<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=Y,
                        CduCsu=germany$cducsu,
                        Spd=germany$spd,
                        Green=germany$green,
-                       #Pds=germany$pds,
+                       Pds=germany$pds,
                        Reunification=germany$reunification
                        #fdp1=germany$fdp
                        )
@@ -523,7 +523,7 @@ library(ggfx)
                                                              X=X,
                                                              prior=NULL,
                                                              beta_init = NULL,
-                                                             MCSamplerSize =5500,
+                                                             MCSamplerSize =11000,
                                                              lasso_lambda = .005,
                                                              Sample_lasso_lambda = NULL,
                                                              lasso_lambda_spec=list(
@@ -533,7 +533,7 @@ library(ggfx)
                                                              ) ## lambda_median=sqrt(1/100)
 
 
-  save(lst_BLASSO_Beta_MCMC, file="/Users/subhadippal/Desktop/Lasso_Simulation_RBVNF/German_political_data_Lasso.RData")
+  #save(lst_BLASSO_Beta_MCMC, file="/Users/subhadippal/Desktop/Lasso_Simulation_RBVNF/German_political_data_Lasso.RData")
   lst=lst_BLASSO_Beta_MCMC
   Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
   Beta_sd=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)
@@ -546,8 +546,22 @@ library(ggfx)
   i=4;j= 2
   Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
   Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
+
   Beta_sd=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)
-  Beta_est1<- matrix(paste0(  round(c(Beta_est),2),"(", round(c(Beta_sd),2),")& "), nrow=10)
+  Beta_est1<- matrix(paste0(  round(c(Beta_est),2),"(", round(c(Beta_sd),2),")& "), nrow=9)
   Beta_est2= cbind(paste(colnames(X),"&"), Beta_est1, paste("\\\\"))
   paste0(Beta_est2, collapse="//")
   cat(Beta_est2)
+
+
+  ##### Summary with CI
+  Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
+  Beta_q_L=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = function(x){quantile(x = x,probs = c(0.025))})
+  Beta_q_U=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = function(x){quantile(x = x,probs = c( 0.975))})
+
+  #Beta_est1<- matrix(paste0(  round(c(Beta_est),2)," (", round(c(Beta_q_L),2)," , ",round(c(Beta_q_U),2), ")& "), nrow=10)
+  Beta_est1<- matrix(paste0( " (", round(c(Beta_q_L),2)," , ",round(c(Beta_q_U),2), ")& "), nrow=4)
+  Beta_est2= cbind(paste("& &"), Beta_est1)
+  paste0(Beta_est2, collapse="//")
+  cat(t(Beta_est2))
+
