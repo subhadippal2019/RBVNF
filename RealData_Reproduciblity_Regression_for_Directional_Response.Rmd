@@ -1,0 +1,235 @@
+---
+title: "Reproducibility_RealData_Regression_for_Directional_Response"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# Loading the R Package
+```{r }
+library(RBVNF)
+load_packages()
+load_additional_packages()
+library(glmnet)
+```
+
+#Real Data Analysis (Vector Cardiogram Data):
+
+```{r }
+MCMC_Posterior_Sample_Size=1000
+  ########################################################
+  ######## Example 2######################################
+  #########################################################
+  file="/Users/subhadippal/Dropbox/projects/Old projects/ClusteringDTIonStiefel/DensitySVD_sep1_16/vcg_data/vcg.csv"
+  vcg_data = read.csv(file)
+
+
+  X1 = vcg_data[,3:5]
+  X2 = vcg_data[,6:8]
+
+  X1_M = vcg_data[,12:14]
+  X2_M = vcg_data[,15:17]
+
+  ##### Entire data
+  #output_file = "./vcg_data/vcg_output.RData"
+
+  N = 98
+  YY = array(c(0,0,0,0,0,0), c(3, 2, N))
+  YY_M = YY
+
+  for (i in 1:N){
+    YY[,1,i] = t(X1[i,])
+    YY[,2,i] = t(X2[i,])
+
+    YY_M[,1,i] = t(X1_M[i,])
+    YY_M[,2,i] = t(X2_M[i,])
+  }
+
+  data = YY;data_M = YY_M
+
+
+  XX<-as.data.frame(model.matrix( ~ as.factor(AgeSex)-1, data=vcg_data ))
+
+  Gender= XX[, 3]+XX[,4] # Female =1
+  Age= XX[, 1]+XX[,3] # Age between 2 to 10 =1
+
+  Y=t(YY[,1,] )
+  X=as.matrix(cbind(Intercept = replicate(length(Age), 1), Gender=Gender, Age=Age, Gender_Age_Int=Gender*Age ))
+  #X= cbind(replicate(dim(Y)[1], 1),as.integer(Maps$Maze)-1, as.integer(Maps$Trial.type)-1, Maps$L.c)
+
+
+
+  n=dim(Y)[1] # NUmber of the samples
+  p=dim(X)[2] # NUmber of the regression covariates
+  d=dim(Y)[2] # Number of direcions in the direcional data
+  #### bbeta is a matrix of dimension p\times d
+  #bbeta=matrix( rnorm(p*d), nrow=p, ncol=d)
+  sigma_square=1
+  tau_square=1000
+
+  beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
+  beta_init=beta_EM
+  lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =MCMC_Posterior_Sample_Size)
+```
+
+
+### Outputs from MCMC 
+
+```{r }
+  i=4;j= 1
+  p1=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  i=4;j= 2
+  p2=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+
+  library(cowplot)
+
+
+
+
+#pdf(file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/DirReg_WriteUpShared/fig/Plot_VCG_beta31_beta32_TripletPlot1.pdf", width = 10, height= 5)
+  plot_grid(p1, p2, labels = c('A', 'B'))
+  #dev.off()
+
+
+
+  ### All plots for appendix
+  #Set1
+
+  i=1;j= 1
+  p1=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j=2
+  p2=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j= 3
+  p3=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  i=2;j=1
+  p4=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j=2
+  p5=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j= 3
+  p6=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+
+
+
+  #pdf(file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/DirReg_WriteUpShared/fig/Plot_VCG_Set1_TripletPlot1.pdf", width = 10, height= 15)
+  plot_grid(p1, p2,p3,p4,p5,p6, ncol = 2)
+  #dev.off()
+
+
+
+  #Set2
+  i=3;j= 1
+  p1=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j=2
+  p2=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j= 3
+  p3=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  i=4;j=1
+  p4=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j=2
+  p5=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j= 3
+  p6=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+
+
+
+  #pdf(file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/DirReg_WriteUpShared/fig/Plot_VCG_Set2_TripletPlot1.pdf", width = 10, height= 15)
+  plot_grid(p1, p2,p3,p4,p5,p6, ncol = 2)
+ # dev.off()
+
+
+
+
+
+  Beta_est<-apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
+
+  Beta_sd<-apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)
+  Beta_est<- matrix(paste0(round(c(Beta_est),2),"(", round(c(Beta_sd),2),")"), nrow=4)
+  #write.csv(Beta_est, file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/VCG_Beta_est.csv")
+
+
+  i=4; j=1
+  xx<-(lst$MC$Mc_Beta[1:MCMC_Posterior_Sample_Size, i, j])
+  round(c(quantile(xx, .025), quantile(xx, .975)),2)
+
+```
+
+
+
+# Real Data Example: German Political Preference Data
+
+```{r }
+MCMC_Posterior_Sample_Size=1000
+#############################
+  ##### Example 1
+  #########################
+
+  library(foreign)
+  #library(Cairo)
+  germany <- read.dta("/Users/subhadippal/Dropbox/projects/Regression of Directional data/dataverse_files/germandata.dta")
+  #attach(germany)
+  summary(germany)
+  # convert counterclockwise angles
+  germany$direction.rad <- (360-germany$direction) / 360 * 2* pi
+  #germany$direction.rad <- as.circular(germany$direction.rad, units = "radians",
+
+
+ # Ideal direction = β0+β1 · Unemp + β2 · Outofwed + β3 · Reunification +
+  #  β4 · SPD + β5 · CDU/CSU + β6 · Greens + β7 · PDS +
+  #  β8 · Year + β9 · YearSQ + .
+
+  #Constructing Response and Design Matrix
+  Y= cbind(cos(germany$direction.rad), sin(germany$direction.rad))
+  X_numerical= cbind(unemp=germany$unemp,
+                     outofwed=germany$outofwed,
+                     year=germany$year,
+                     yearSQ=(germany$year)^2/100)
+
+  X_categorical=cbind( Intercept=replicate(n = length(germany$direction.rad),1 ),
+                      CduCsu=germany$cducsu,
+                      Spd=germany$spd,
+                      Green=germany$green,
+                      Pds=germany$pds,
+                      Reunification=germany$reunification)
+  X_numerical =scale(X_numerical, scale = FALSE)
+X=cbind(X_categorical, X_numerical)
+
+
+  n=dim(Y)[1] # NUmber of the samples
+  p=dim(X)[2] # NUmber of the regression covariates
+  d=dim(Y)[2] # Number of direcions in the direcional data
+  #### bbeta is a matrix of dimension p\times d
+  #bbeta=matrix( rnorm(p*d), nrow=p, ncol=d)
+  sigma_square=1
+  tau_square=1000
+
+  beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
+  beta_init=beta_EM
+  lst_germany=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =MCMC_Posterior_Sample_Size)
+ # save(lst_germany, file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/workspaces/Germany_RUN_Example1_11000.rdata")
+
+
+```
+
+
+```{r }
+i=1;j= 1
+  Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
+  Beta_est=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
+  Beta_sd=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)
+  cbind(Estimate=c(Beta_est), SD=c(Beta_sd))
+
+
+  Beta_est_CI_L=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = function(x){quantile(x, .025)})
+  Beta_est_CI_R=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = function(x){quantile(x, 1-.025)})
+  CI_beta<- matrix(paste0("[",round(Beta_est_CI_L, 2)," , ", round(Beta_est_CI_R,2), "]"), ncol=10)
+  CI_beta
+
+
+
+```
