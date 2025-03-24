@@ -47,7 +47,7 @@ data_lst<-Data_generator_vnf_reg_sparse(n=n,
 
 
 ```{r }
-MCMC_Sample_Size=1000# 
+MCMC_Sample_Size=2000# 
  lst_BLASSO_Beta_MCMC  =               MCMC_BLASSO_Dir_regression_sampler_V1( Y=data_lst$Y,
                                                                                  X=data_lst$X,
                                                                                  prior=NULL,
@@ -76,7 +76,7 @@ print(cbind(TrueValue=c(t(data_lst$beta)), Posterior_mean=c(t(Posterior_mean)),L
 
 # Cross Validation and LASSO Estimate:
 ```{r }
-
+library(glmnet)
 n=1000    # Number of the samples
 p=30      # Number of the regression covariates
 d=5     # Number of directions in the directional data
@@ -95,8 +95,8 @@ cv_LASSO_output<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=data_lst$Y,
                                                          X=data_lst$X,
                                                          beta_init = NULL,
                                                          Max_EM_iter=1000,
-                                                         cv_k_fold = 10,
-                                                         cv_lambda_n = 10,
+                                                         cv_k_fold = 8,
+                                                         cv_lambda_n = 40,
                                                          epsilon_lambda_range_min = .0001,
                                                          lambda_Range_Type = 2
                                                          )
@@ -105,6 +105,7 @@ cv_LASSO_output<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=data_lst$Y,
 plot.cv.Dir_Lasso_Reg(cv_LASSO_output)
 library(ggfx)
 plt_cv_lambda<-plot.cv.Dir_Lasso_Reg_gg(cv_LASSO_output, color_theme = 2)
+plt_cv_lambda
 
 ```
 
@@ -112,9 +113,9 @@ plt_cv_lambda<-plot.cv.Dir_Lasso_Reg_gg(cv_LASSO_output, color_theme = 2)
 ```{r }
 
 
-beta_EM_Lasso_lambda_min=EM_BLASSO_Dir_regression_optimizer_V1(Y=data_lst$Y, X=data_lst$X, beta_init = NULL, lasso_lambda = max(xx$lambda.min),   EM_tolerence = .00001)
+beta_EM_Lasso_lambda_min=EM_BLASSO_Dir_regression_optimizer_V1(Y=data_lst$Y, X=data_lst$X, beta_init = NULL, lasso_lambda = max(cv_LASSO_output$lambda.min),   EM_tolerence = .00001)
 
-beta_EM_Lasso_lambda1.se=EM_BLASSO_Dir_regression_optimizer_V1(Y=data_lst$Y, X=data_lst$X, beta_init = NULL, lasso_lambda = max(xx$lambda.1se),   EM_tolerence = .00001)
+beta_EM_Lasso_lambda1.se=EM_BLASSO_Dir_regression_optimizer_V1(Y=data_lst$Y, X=data_lst$X, beta_init = NULL, lasso_lambda = max(cv_LASSO_output$lambda.1se),   EM_tolerence = .00001)
 
 
 print(cbind(TrueValue=c(t(data_lst$beta)),  beta_EM_Lasso_lambda_min=c(t(beta_EM_Lasso_lambda_min)), beta_EM_Lasso_lambda1.se=c(t(beta_EM_Lasso_lambda1.se))   ))
