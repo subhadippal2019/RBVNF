@@ -1,0 +1,124 @@
+---
+title: "Reproduciblity LASSO and Bayesian LASSO Regression for Directional Response"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Loading the R Package
+```{r }
+library(RBVNF)
+load_packages()
+load_additional_packages()
+```
+
+
+
+## Simulated Data Generation and EM for Posterior Mode (d=2, Circular Data):
+In this part of the demonstration, we generate a dataset of size n=500, with p=20 (20 covariates) and the responses are circular,i.e., d=2. Then we Bayesian-LASSO algorithm to estimate the regression coefficients, where we consider the inverse Gamma Prior and sample the tuning parameter.
+
+# LASSO Regression For Directional Data (d=2):
+
+```{r }
+
+
+n=500  # NUmber of the samples
+p=20    # NUmber of the regression covariates
+d=2   # Number of direcions in the direcional data
+
+Num_of_nonzero_beta= round(p*.10)
+Min_Non_Zero_beta= 1
+Max_Non_Zero_beta=10
+data_lst<-Data_generator_vnf_reg_sparse(n=n,
+                                          p=p,
+                                          d=d,
+                                          SetUp = 3,
+                                          NumOfNonZeroBeta=c(Num_of_nonzero_beta,
+                                                             Min_Non_Zero_beta,
+                                                             Max_Non_Zero_beta
+                                                             )
+                                          )
+```
+
+
+```{r }
+MCMC_Sample_Size=1000# 
+ lst_BLASSO_Beta_MCMC  =               MCMC_BLASSO_Dir_regression_sampler_V1( Y=data_lst$Y,
+                                                                                 X=data_lst$X,
+                                                                                 prior=NULL,
+                                                                                 beta_init = NULL,
+                                                                                 MCSamplerSize =MCMC_Sample_Size,
+                                                                                 lasso_lambda_spec = list(
+                                                                                                            Type="SAMPLE",
+                                                                                                            lasso_lambda=0.01,
+                                                                                                                 hyper_lambda_selector= NULL
+                                                                                                          ))
+    
+
+                                                                              lst=lst_BLASSO_Beta_MCMC
+  i=1;j= 1
+  Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
+  Posterior_mean=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
+  Posterior_Q_Lower=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = function(x){return(c(quantile(x, probs = .025)))} )
+  Posterior_Q_Upper=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = function(x){return(c(quantile(x, probs = .975)))})
+print(cbind(TrueValue=c(t(data_lst$beta)), Posterior_mean=c(t(Posterior_mean)),Lower_Bound=c(t(Posterior_Q_Lower)), Upper_Bound=c(t(Posterior_Q_Upper) )))
+  
+  # Samples of the tuning parameter
+  Plot_MCMC_Diag_Triplet(lst$MC$lasso_lambda_all,y_lab_text = bquote(lambda))
+                                                                                                
+```
+
+
+# Cross Validation and LASSO Estimate:
+```{r }
+
+n=1000    # Number of the samples
+p=30      # Number of the regression covariates
+d=5     # Number of directions in the directional data
+
+#Test Lasso
+data_lst  =   Data_generator_vnf_reg(n=2000, p=p, d=d, concentration_factor = 1, beta_factor = 5)
+data_lst  <-  Data_generator_vnf_reg_sparse(n=200, p=p, d=d,SetUp = 2, NumOfNonZeroBeta=c(4, 1, 10))
+
+
+
+Y = data_lst$Y;X=data_lst$X;
+
+
+
+cv_LASSO_output<-EM_BLASSO_Dir_regression_optimizer_V1.cv(Y=data_lst$Y,
+                                                         X=data_lst$X,
+                                                         beta_init = NULL,
+                                                         Max_EM_iter=1000,
+                                                         cv_k_fold = 10,
+                                                         cv_lambda_n = 10,
+                                                         epsilon_lambda_range_min = .0001,
+                                                         lambda_Range_Type = 2
+                                                         )
+                                                      
+
+plot.cv.Dir_Lasso_Reg(cv_LASSO_output)
+library(ggfx)
+plt_cv_lambda<-plot.cv.Dir_Lasso_Reg_gg(cv_LASSO_output, color_theme = 2)
+
+```
+
+
+```{r }
+
+
+beta_EM_Lasso_lambda_min=EM_BLASSO_Dir_regression_optimizer_V1(Y=data_lst$Y, X=data_lst$X, beta_init = NULL, lasso_lambda = max(xx$lambda.min),   EM_tolerence = .00001)
+
+beta_EM_Lasso_lambda1.se=EM_BLASSO_Dir_regression_optimizer_V1(Y=data_lst$Y, X=data_lst$X, beta_init = NULL, lasso_lambda = max(xx$lambda.1se),   EM_tolerence = .00001)
+
+
+print(cbind(TrueValue=c(t(data_lst$beta)),  beta_EM_Lasso_lambda_min=c(t(beta_EM_Lasso_lambda_min)), beta_EM_Lasso_lambda1.se=c(t(beta_EM_Lasso_lambda1.se))   ))
+```
+
+
+

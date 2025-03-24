@@ -1,8 +1,9 @@
 ---
 title: 'Reproduciblity: Bayesian Regression for Directional Data'
 output:
-  pdf_document: default
+  word_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -34,7 +35,7 @@ Y = data_lst$Y;X=data_lst$X;
 # Fitting the EM algorithm for the Standard Regresion for directional responses: This takes less than a minute. 
 beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
 colnames(beta_EM)= gsub("Y","Beta", colnames(beta_EM))
-print("Estimated Beta=", beta_EM)
+print(paste("Estimated Beta=", beta_EM))
 print(cbind(EstimatedValue=c(t(beta_EM)),TrueValue=c(t(data_lst$beta))))
 ```
 
@@ -75,7 +76,7 @@ Y = data_lst$Y;X=data_lst$X;
 # Fitting the EM algorithm for the Standard Regresion for directional responses: This takes less than a minute. 
 beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
 colnames(beta_EM)= gsub("Y","Beta", colnames(beta_EM))
-print(beta_EM)
+print(paste("Estimated Beta=", beta_EM))
 print(cbind(EstimatedValue=c(t(beta_EM)),TrueValue=c(t(data_lst$beta))))
 ```
 
@@ -116,7 +117,7 @@ Y = data_lst$Y;X=data_lst$X;
 # Fitting the EM algorithm for the Standard Regresion for directional responses: This takes less than a minute. 
 beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
 colnames(beta_EM)= gsub("Y","Beta", colnames(beta_EM))
-print(beta_EM)
+print(paste("Estimated Beta=", beta_EM))
 print(cbind(EstimatedValue=c(t(beta_EM)),TrueValue=c(t(data_lst$beta))))
 ```
 
