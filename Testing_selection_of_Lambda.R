@@ -19,7 +19,7 @@ Y = data_lst$Y;X=data_lst$X;
 #cv.glmnet(x = X, y = Y[,1])
 
 beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
-
+cbind(c(t(beta_EM)),c(t(data_lst$beta)) )
 
 beta_EM_Lasso=EM_BLASSO_Dir_regression_optimizer_V1(Y=Y, X=X, beta_init = NULL,   EM_tolerence = .00001, lasso_lambda = .002)
 
