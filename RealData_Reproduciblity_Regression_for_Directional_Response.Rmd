@@ -51,13 +51,13 @@ MCMC_Posterior_Sample_Size=1000
     YY_M[,2,i] = t(X2_M[i,])
   }
 
-  data = YY;data_M = YY_M
+  data = YY;data_M = YY_M;
 
 
   XX<-as.data.frame(model.matrix( ~ as.factor(AgeSex)-1, data=vcg_data ))
 
-  Gender= XX[, 3]+XX[,4] # Female =1
-  Age= XX[, 1]+XX[,3] # Age between 2 to 10 =1
+  Gender= XX[, 3]+XX[,4]; # Female =1
+  Age= XX[, 1]+XX[,3]; # Age between 2 to 10 =1
 
   Y=t(YY[,1,] )
   X=as.matrix(cbind(Intercept = replicate(length(Age), 1), Gender=Gender, Age=Age, Gender_Age_Int=Gender*Age ))
@@ -179,9 +179,7 @@ MCMC_Posterior_Sample_Size=1000
   #germany$direction.rad <- as.circular(germany$direction.rad, units = "radians",
 
 
- # Ideal direction = β0+β1 · Unemp + β2 · Outofwed + β3 · Reunification +
-  #  β4 · SPD + β5 · CDU/CSU + β6 · Greens + β7 · PDS +
-  #  β8 · Year + β9 · YearSQ + .
+
 
   #Constructing Response and Design Matrix
   Y= cbind(cos(germany$direction.rad), sin(germany$direction.rad))
@@ -210,7 +208,7 @@ X=cbind(X_categorical, X_numerical)
 
   beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
   beta_init=beta_EM
-  lst_germany=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =MCMC_Posterior_Sample_Size)
+  lst_germany=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize=MCMC_Posterior_Sample_Size)
  # save(lst_germany, file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/workspaces/Germany_RUN_Example1_11000.rdata")
 
 
