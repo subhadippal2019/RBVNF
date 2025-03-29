@@ -27,7 +27,7 @@ In this part of the demonstration, we generate a dataset of size n=500, with p=2
 
 ```{r }
 
-
+Start_time=Sys.time()
 n=500  # NUmber of the samples
 p=20    # NUmber of the regression covariates
 d=3   # Number of direcions in the direcional data
@@ -216,6 +216,10 @@ beta_EM_Lasso_lambda1.se=EM_BLASSO_Dir_regression_optimizer_V1(Y=data_lst$Y, X=d
 
 
 print(cbind(TrueValue=c(t(data_lst$beta)),  beta_EM_Lasso_lambda_min=c(t(beta_EM_Lasso_lambda_min)), beta_EM_Lasso_lambda1.se=c(t(beta_EM_Lasso_lambda1.se))   ))
+End_Time=Sys.time()
+
+print(paste0("Total Run Time: ", End_Time-Start_time, "minutes"))
+
 ```
 
 

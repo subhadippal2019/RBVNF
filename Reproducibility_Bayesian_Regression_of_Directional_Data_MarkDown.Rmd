@@ -22,6 +22,9 @@ load_additional_packages()
 ## Simulated Data Generation and EM for Posterior Mode (d=2, Circular Data):
 In this part of the demonstration, we generate a dataset of size n=750, with p=10 (10 covariates) and the responses are circular,i.e., d=2. Then we fit the EM algorithm to estimate the regression coefficients. True value of the regression coefficients, and its estimates are printed.
 ```{r }
+Start_time= Sys.time()
+Set_MCSamplerSize=1000
+
 n=750  # NUmber of the samples
 p=10    # NUmber of the regression covariates
 d=2     # Number of direcions in the direcional data
@@ -44,7 +47,8 @@ print(cbind(EstimatedValue=c(t(beta_EM)),TrueValue=c(t(data_lst$beta))))
 Here we obtain the posterior samples of the regression coefficients using the MCMC algorithm. 
 ```{r }
 # Change Sample Size to get the full MCMC. MCMC step takes time depending on the sample size. This step can take 20 to 30 minutes. Prints output after every 100 samples are generated.
-lst=MCMC_Dir_regression_sampler_V1(Y=data_lst$Y, X=data_lst$X, prior=NULL, beta_init = NULL, MCSamplerSize =100)
+lst=MCMC_Dir_regression_sampler_V1(Y=data_lst$Y, X=data_lst$X, prior=NULL, beta_init = NULL, MCSamplerSize =Set_MCSamplerSize)
+
 ```
 
 The triplet plot (autocorrelation, traceplot and density plot) for some of the regression coefficient is plotted (d=2)
@@ -85,7 +89,7 @@ print(cbind(EstimatedValue=c(t(beta_EM)),TrueValue=c(t(data_lst$beta))))
 Here we obtain the posterior samples of the regression coefficients using the MCMC algorithm. 
 ```{r }
 # Change Sample Size to get the full MCMC. MCMC step takes time depending on the sample size. This step can take 20 to 30 minutes. Prints output after every 100 samples are generated.
-lst=MCMC_Dir_regression_sampler_V1(Y=data_lst$Y, X=data_lst$X, prior=NULL, beta_init = NULL, MCSamplerSize =100)
+lst=MCMC_Dir_regression_sampler_V1(Y=data_lst$Y, X=data_lst$X, prior=NULL, beta_init = NULL, MCSamplerSize =Set_MCSamplerSize)
 ```
 
 The triplet plot (autocorrelation, traceplot and density plot) for some of the regression coefficient is plotted (d=3)
@@ -126,7 +130,7 @@ print(cbind(EstimatedValue=c(t(beta_EM)),TrueValue=c(t(data_lst$beta))))
 Here we obtain the posterior samples of the regression coefficients using the MCMC algorithm. 
 ```{r }
 # Change Sample Size to get the full MCMC. MCMC step takes time depending on the sample size. This step can take 20 to 30 minutes. Prints output after every 100 samples are generated.
-lst=MCMC_Dir_regression_sampler_V1(Y=data_lst$Y, X=data_lst$X, prior=NULL, beta_init = NULL, MCSamplerSize =100)
+lst=MCMC_Dir_regression_sampler_V1(Y=data_lst$Y, X=data_lst$X, prior=NULL, beta_init = NULL, MCSamplerSize =Set_MCSamplerSize)
 ```
 
 The triplet plot (autocorrelation, traceplot and density plot) for some of the regression coefficient is plotted (d=10)
@@ -137,6 +141,7 @@ i=1;j= 1
   Posterior_Mean=apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
   Posterior_SD=apply( lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)
   print(cbind(Estimated_Value=c(t(Posterior_Mean)),TrueValue=c(t(data_lst$beta))))
-  
+  End_time= Sys.time()
+  print(paste0("Total Run Time=",End_time- Start_time ))
 ```
 
