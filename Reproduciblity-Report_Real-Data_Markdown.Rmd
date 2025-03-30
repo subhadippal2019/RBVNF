@@ -1,9 +1,8 @@
 ---
 title: 'Reproduciblty Report: R MarkDown for  Real Data Analysis'
 output:
-  word_document: default
   html_document: default
-  pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Loading the R Package
-```{r include=TRUE}
+```{r include=FALSE}
 library(RBVNF)
 load_packages()
 load_additional_packages()
@@ -34,7 +33,6 @@ Effect_of_var<-function(beta_EM, sel_var ){
 #############################
   ##### Example 1
   #########################
-Start_time= Sys.time()
   library(foreign) # for read.dta() funciton
   #library(Cairo)
   germany <- read.dta("data/RealData/germandata.dta")
@@ -49,6 +47,9 @@ Start_time= Sys.time()
 
 # Preparing Data to run the Regression model for Directional Data:
 ```{r }
+ # Ideal direction = β0+β1 · Unemp + β2 · Outofwed + β3 · Reunification +
+  #  β4 · SPD + β5 · CDU/CSU + β6 · Greens + β7 · PDS +
+  #  β8 · Year + β9 · YearSQ + .
 
   #Constructing Response and Design Matrix
   Y= cbind(cos(germany$direction.rad), sin(germany$direction.rad))
@@ -90,7 +91,7 @@ print(beta_EM)
   
   
 ```{r }
-  lst_germany=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =2000)
+  lst_germany=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =11000)
   #save(lst_germany, file="/data/Output_Workspaces/Germany_RUN_Example1_100.rdata")
 ```
 
@@ -186,8 +187,7 @@ norm<-function(x){sqrt(sum(x^2))}
   Beta_est/Beta_sd
 
 
- End_time= Sys.time()
-  print(paste0("Total Run Time=",End_time- Start_time ))
+
 
 
 ```

@@ -2,6 +2,7 @@ install.packages("bpnreg")
 
 
 ######
+
 Effect_of_var<-function(beta_EM, sel_var ){
 
   baseLine_dir=beta_EM[1,]/ norm(beta_EM[1,])

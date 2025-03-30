@@ -1,5 +1,5 @@
 ---
-title: 'Reproduciblty Report: R MarkDown for  Real Data Analysis'
+title: 'Reproduciblty Report: R MarkDown for  Real Data Analysis,Example:German Political Data'
 output:
   word_document: default
   html_document: default
