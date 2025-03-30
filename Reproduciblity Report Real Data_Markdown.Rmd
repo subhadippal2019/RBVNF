@@ -34,6 +34,7 @@ Effect_of_var<-function(beta_EM, sel_var ){
 #############################
   ##### Example 1
   #########################
+
 Start_time= Sys.time()
   library(foreign) # for read.dta() funciton
   #library(Cairo)
@@ -70,7 +71,8 @@ X=cbind(X_categorical, X_numerical)
 
 # The Regresion for the directional data:
 ```{r }
-
+SetMcLength=2000;
+SetMcLength=max(SetMcLength, 2000)
   n=dim(Y)[1] # NUmber of the samples
   p=dim(X)[2] # NUmber of the regression covariates
   d=dim(Y)[2] # Number of direcions in the direcional data
@@ -78,7 +80,10 @@ X=cbind(X_categorical, X_numerical)
   #bbeta=matrix( rnorm(p*d), nrow=p, ncol=d)
   sigma_square=1
   tau_square=1000
+```
 
+# Running the Optimization Algorithm to obtain Posterior Mode:
+```{r }
   beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
 print("Estimated Posterior Mode:=")
 colnames(beta_EM)=gsub("Y_", "Beta_Y_",  colnames(beta_EM))
@@ -89,14 +94,15 @@ print(beta_EM)
   
   
   
+# Running the Data Augmentation- MCMC Algorithm to obtain Posterior Mode:
 ```{r }
-  lst_germany=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =2000)
+  lst_germany=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =SetMcLength)
   #save(lst_germany, file="/data/Output_Workspaces/Germany_RUN_Example1_100.rdata")
 ```
 
 
 
-# Plotting and Related Output
+# Plotting and Related Output:
 
 ```{r }
 lst=lst_germany
@@ -187,7 +193,7 @@ norm<-function(x){sqrt(sum(x^2))}
 
 
  End_time= Sys.time()
-  print(paste0("Total Run Time=",End_time- Start_time ))
+  print(paste0("Total Run Time=",End_time- Start_time , "minutes"))
 
 
 ```

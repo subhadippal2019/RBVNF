@@ -1,28 +1,195 @@
 ---
 title: 'Reproduciblity: Real Data Example: VCG Data'
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# Loading the R Package
+```{r include=TRUE}
+library(RBVNF)
+load_packages()
+load_additional_packages()
+norm<-function(x){sqrt(sum(x^2))}
+######
+Effect_of_var<-function(beta_EM, sel_var ){
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+  baseLine_dir=beta_EM[1,]/ norm(beta_EM[1,])
+  beta_sel_dir<-beta_EM[sel_var, ]/norm(beta_EM[sel_var, ])
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+  val_return<-as.numeric(acos(t(baseLine_dir)%*%beta_sel_dir))
+  return(val_return)
+}
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r }
+  ########################################################
+  ######## Example 2######################################
+  #########################################################
+  VCG_file="data/RealData/vcg.csv"
+  vcg_data = read.csv(file = VCG_file)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r }
+  X1 = vcg_data[,3:5]
+  X2 = vcg_data[,6:8]
+
+  X1_M = vcg_data[,12:14]
+  X2_M = vcg_data[,15:17]
+
+  ##### Entire data
+  #output_file = "./vcg_data/vcg_output.RData"
+
+  N = 98
+  YY = array(c(0,0,0,0,0,0), c(3, 2, N))
+  YY_M = YY
+
+  for (i in 1:N){
+    YY[,1,i] = t(X1[i,])
+    YY[,2,i] = t(X2[i,])
+
+    YY_M[,1,i] = t(X1_M[i,])
+    YY_M[,2,i] = t(X2_M[i,])
+  }
+
+  data = YY;data_M = YY_M
+
+
+  XX<-as.data.frame(model.matrix( ~ as.factor(AgeSex)-1, data=vcg_data ))
+
+  Gender= XX[, 3]+XX[,4] # Female =1
+  Age= XX[, 1]+XX[,3] # Age between 2 to 10 =1
+
+  Y=t(YY[,1,] )
+  X=as.matrix(cbind(Intercept = replicate(length(Age), 1), Gender=Gender, Age=Age, Gender_Age_Int=Gender*Age ))
+  #X= cbind(replicate(dim(Y)[1], 1),as.integer(Maps$Maze)-1, as.integer(Maps$Trial.type)-1, Maps$L.c)
+```
+
+
+
+# Preparation of the data for Regression:
+```{r }
+
+SetMcLength=2000;
+SetMcLength=max(SetMcLength, 2000)
+
+  n=dim(Y)[1] # NUmber of the samples
+  p=dim(X)[2] # NUmber of the regression covariates
+  d=dim(Y)[2] # Number of direcions in the direcional data
+  #### bbeta is a matrix of dimension p\times d
+  #bbeta=matrix( rnorm(p*d), nrow=p, ncol=d)
+  sigma_square=1
+  tau_square=1000
+```
+
+
+# Running the Optimization Algorithm to obtain Posterior Mode:
+```{r }
+Start_time= Sys.time()
+  beta_EM=EM_Dir_regression_optimizer_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,   EM_tolerence = .00001)
+print("Estimated Posterior Mode:=")
+colnames(beta_EM)=gsub("Y_", "Beta_Y_",  colnames(beta_EM))
+print(beta_EM)
+```
+
+
+# Running the Data Augmentation- MCMC Algorithm to obtain Posterior Mode:
+```{r }
+  lst=MCMC_Dir_regression_sampler_V1(Y=Y, X=X, prior=NULL, beta_init = NULL,  MCSamplerSize =SetMcLength)
+```
+
+
+# Plotting and Related Output:
+```{r }
+  i=4;j= 1
+  p1=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  i=4;j= 2
+  p2=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+
+  library(cowplot)
+
+
+
+
+#pdf(file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/DirReg_WriteUpShared/fig/Plot_VCG_beta31_beta32_TripletPlot1.pdf", width = 10, height= 5)
+  plot_grid(p1, p2, labels = c('A', 'B'))
+  #dev.off()
+
+
+
+  ### All plots for appendix
+  #Set1
+
+  i=1;j= 1
+  p1=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j=2
+  p2=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j= 3
+  p3=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  i=2;j=1
+  p4=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j=2
+  p5=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j= 3
+  p6=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+
+
+
+ # pdf(file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/DirReg_WriteUpShared/fig/Plot_VCG_Set1_TripletPlot1.pdf", width = 10, height= 15)
+  plot_grid(p1, p2,p3,p4,p5,p6, ncol = 2)
+ # dev.off()
+
+
+
+  #Set2
+  i=3;j= 1
+  p1=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j=2
+  p2=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j= 3
+  p3=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  i=4;j=1
+  p4=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j=2
+  p5=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+  j= 3
+  p6=Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i-1)][.(j)]))
+
+
+
+  #pdf(file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/DirReg_WriteUpShared/fig/Plot_VCG_Set2_TripletPlot1.pdf", width = 10, height= 15)
+  plot_grid(p1, p2,p3,p4,p5,p6, ncol = 2)
+ # dev.off()
+
+
+```
+
+
+# Estimated Parameters
+```{r }
+
+
+  Beta_est<-apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
+
+  Beta_sd<-apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)
+  Beta_est<- matrix(paste0(round(c(Beta_est),2),"(", round(c(Beta_sd),2),")"), nrow=4)
+  #write.csv(Beta_est, file="/Users/subhadippal/Dropbox/projects/Regression of Directional data/VCG_Beta_est.csv")
+  print(Beta_est)
+
+  i=4; j=1
+  xx<-(lst$MC$Mc_Beta[1001:SetMcLength, i, j])
+  round(c(quantile(xx, .025), quantile(xx, .975)),2)
+
+
+
+ End_time= Sys.time()
+  print(paste0("Total Run Time=",End_time- Start_time, "minutes" ))
+```
