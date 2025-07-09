@@ -1,8 +1,8 @@
 
 
 # This code required the simulation Output files/MCMC samples for all the different simulation setting.
-# Total number of MC from Dataset are 4*100*3=1200.  To gfenerate all the simulated replication,
-# it takes time as there are total 1200 different datasets of different settings.
+# Total number of MC from Data-set are 4*100*3=1200.  To gfenerate all the simulated replication,
+# it takes time as there are total 1200 different data-sets of different settings.
 # Once all the MC are generated this code is used to summarize the results.
 
 # Summary MSE

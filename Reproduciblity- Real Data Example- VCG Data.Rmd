@@ -78,7 +78,7 @@ Effect_of_var<-function(beta_EM, sel_var ){
 # Preparation of the data for Regression:
 ```{r }
 
-SetMcLength=2000;
+SetMcLength=11000;
 SetMcLength=max(SetMcLength, 2000)
 
   n=dim(Y)[1] # NUmber of the samples
