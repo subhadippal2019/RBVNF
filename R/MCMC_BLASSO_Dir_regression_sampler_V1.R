@@ -33,6 +33,13 @@ Generate_Prior_Lambda_HyperGamma<-function(Lambda_lower, Lambda_upper, info_weig
 #' @param prior: Prior specification for the posterior. Default (prior=NULL) uses the very flat prior.
 #' @param beta_init: Initial value of rregression coefficient. The default (beta_innit=NULL) utilizes the EM algorithm to get a initial value
 #' @param MCSamplerSize: Number of MCMC samples required to be generated.
+#' @param n_less_than_p_sampler: Two choices 'JOHNDROW' or STANDARD'. The option 'JOHNDROW' is more efficient when n>>p. for example n=80 p =200
+#' @param lasso_lambda: lasso_lambda=.01 is the default value for the Lasso tuning parameter lambda.
+#' If we want to use a fixed lambda select additionally lasso_lambda_spec=list(Type="FIXED")
+#' @param lasso_lambda_spec: lasso_lambda_spec=list(Type="SAMPLE",lasso_lambda=.01,hyper_lambda_selector= list(Lambda_lower=0.01, Lambda_upper=0.02,info_weight=10 ) ),
+#' if Type="SAMPLE" is selected then posterior samples for lambda parameter (lasso tuning parameter) is  drawn from the corresponding posterior.
+#' If Type="Fixed" it will take a fixed value of lambda:  lasso_lambda=.01
+#' It is recommended to use the Type="SAMPLE" specification.
 #' @return MCMC samples from for  Posterior of mode and concentration parameter of Vonmises distribution.
 #' @examples
 #' library(Rfast)
@@ -59,6 +66,7 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
                                                       eps_accuracy=.00000001,
                                                       lasso_lambda=.01,
                                                       Sample_lasso_lambda=NULL, # c(lambda_min, lambda_max, info_weight=1)
+                                                      n_less_than_p_sampler="JOHNDROW",  # STANDARD, JOHNDROW
                                                       lasso_lambda_spec=list(
                                                                               Type="SAMPLE",
                                                                               lasso_lambda=.01,
@@ -72,7 +80,7 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
   ####################################Initial Value######################################################
 
   #if(!is.null(Sample_lasso_lambda)){
-  if(lasso_lambda_spec$Type=='SAMPLE'){
+  if(toupper(lasso_lambda_spec$Type)=='SAMPLE'){
     if(is.null(lasso_lambda_spec$hyper_lambda_selector)){
       epsilon_lambda_range_min=.0001
       lso<-cv.glmnet(x=kronecker(diag(d), X), y=c(Y))
@@ -92,7 +100,7 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
     }
 
   }
-  if(lasso_lambda_spec$Type!='SAMPLE'){
+  if(toupper(lasso_lambda_spec$Type)!='SAMPLE'){
   #if(is.null(Sample_lasso_lambda)){
     Sample_lasso_lambda=FALSE}
 
@@ -158,6 +166,7 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
   ########################### Storing all Values ########################################################
   #######################################################################################################
   beta_all=array(data = NA, dim=c(MCSamplerSize, p, d) )
+  beta_n_large_p_all= array(data = NA, dim=c(MCSamplerSize, p, d) ) ######
   #Sigma_all<-array(data = NA, dim=c(MCSamplerSize, p, p) )
   #sigma_square_all=NULL
   T_aug_all=NULL
@@ -169,7 +178,7 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
   sigma_square=1000
   print(" Initial value and prior information obtained successfully.  The MCMC samples are being generated. This step may take significnt amount of time depending on the MCMC sample size to be Generated.   " )
   #browser()
-  #browser()
+ # browser()
   for(iter in 1:MCSamplerSize){
     #######################################################################################################
     ######### Sample of the Augmented Variable ############################################################
@@ -177,11 +186,13 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
     T_aug<-Sample_all_T_Aug(n=n, nu=nu, X=X, beta=beta,K = K, j_nu_0 = j_nu_0, J_nuPlus1 =J_nuPlus1 , eps_accuracy = eps_accuracy  )
 
 
+
+
     ######################################################################################################
     ####################Sample of beta  ###########################################################
     ######################################################################################################
 
-    Diag_T<- diag(T_aug)
+
     #beta_post_Sigma<-solve(2*t(X)%*% Diag_T %*% X +solve(prior$beta_Sigma_0)  )
     #beta_post_mean<- beta_post_Sigma %*% (t(X)%*%Y+ solve(prior$beta_Sigma_0)%*%prior$beta_mean)
 
@@ -191,19 +202,43 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
     #Tau_all=
 
     Tau_ij_sq_all= sample_Tau_ij(gig_chi=c(beta^2), gig_psi= lasso_lambda^2) #ghyp::rgig(n = 1, lambda = 1/2, chi = 1, psi = gig_psi)
-
-
     #GIGrgv::rgig(n = 10, lambda = 1, chi = 1, psi = 1)
-    iMat_d<-diag(rep(1,d))
-    D_tau_inv=diag(c(1/Tau_ij_sq_all))
-    beta_post_Sigma<-solve( kronecker(iMat_d, 2*t(X)%*% Diag_T %*% X) +  D_tau_inv )
-    beta_post_mean<- beta_post_Sigma %*% ( c(t(X)%*%Y ))
+    ###### n\geq p Case
+    if(n>=p){
+      #print("should not be Here")
+      Diag_T<- diag(T_aug)
+      iMat_d<-diag(rep(1,d))
+      D_tau_inv=diag(c(1/Tau_ij_sq_all))
+      beta_post_Sigma<-solve( kronecker(iMat_d, 2*t(X)%*% Diag_T %*% X) +  D_tau_inv )
+      beta_post_mean<- beta_post_Sigma %*% ( c(t(X)%*%Y ))
 
-    beta_vec<-MASS::mvrnorm(n=1, mu =beta_post_mean , Sigma = beta_post_Sigma)
+      beta_vec<-MASS::mvrnorm(n=1, mu =beta_post_mean , Sigma = beta_post_Sigma)
+      beta=matrix(beta_vec, ncol=d)
+    }
 
-    beta=matrix(beta_vec, ncol=d)
-   # beta=rMatrixNormal(M=beta_post_mean, V1 =beta_post_Sigma , V2 =iMat_d )
+    if(n<p){
 
+
+            if(toupper(n_less_than_p_sampler)!='JOHNDROW'){
+              #print("should not be Here1")
+                  Diag_T<- diag(T_aug)
+                  iMat_d<-diag(rep(1,d))
+                  D_tau_inv=diag(c(1/Tau_ij_sq_all))
+                  beta_post_Sigma<-solve( kronecker(iMat_d, 2*t(X)%*% Diag_T %*% X) +  D_tau_inv )
+                  beta_post_mean<- beta_post_Sigma %*% ( c(t(X)%*%Y ))
+
+                  beta_vec<-MASS::mvrnorm(n=1, mu =beta_post_mean , Sigma = beta_post_Sigma)
+                  beta=matrix(beta_vec, ncol=d)
+            }
+           # beta=rMatrixNormal(M=beta_post_mean, V1 =beta_post_Sigma , V2 =iMat_d )
+            if(toupper(n_less_than_p_sampler) == 'JOHNDROW'){
+              #print("should not be Here1")
+                  #beta_n_large_p_vec= r_sample_beta_n_less_p_LASSO(X, Y, T_aug,Tau_ij_sq_all, d, n ) # To TEst
+                  #beta_n_large_p=matrix(beta_n_large_p_vec, ncol=d)
+                  beta_vec= r_sample_beta_n_less_p_LASSO(X, Y, T_aug,Tau_ij_sq_all, d, n ) # To TEst
+                  beta=matrix(beta_vec, ncol=d)
+            }
+    }
     ######################################################################################################
     ####################Sample of Sigma  ###########################################################
     ######################################################################################################
@@ -230,6 +265,7 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
     ########################## Storing All Variables #####################################################
     ######################################################################################################
     beta_all[iter, ,   ]=beta
+    #beta_n_large_p_all[iter, ,   ]=beta_n_large_p
     #Theta_all[iter, , ]= Theta
     #sigma_square_all=c(sigma_square_all, sigma_square)
     #sigma_square_all[iter]=sigma_square
@@ -275,6 +311,7 @@ MCMC_BLASSO_Dir_regression_sampler_V1<-function(Y, X, prior=NULL,
 
 
   MC<-list(         Mc_Beta=  beta_all,
+                   # Mc_Beta_n_large_p= beta_n_large_p_all,
                     T_aux_var=T_aug_all,
                     Tau_ij_sq_all= Tau_ij_sq_all_store,
                     lasso_lambda_all=lasso_lambda_all

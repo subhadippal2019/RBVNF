@@ -81,8 +81,10 @@ tau_square=1000
   Plot_MCMC_Diag_Triplet(lst$MC$Mc_Beta[,i,j],y_lab_text = bquote(beta[.(i)][.(j)]))
   apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = mean)
   apply(lst$MC$Mc_Beta, MARGIN = c(2,3), FUN = sd)
+data_lst$beta
 
 
+ lst<- lst_BLASSO_Beta_MCMC
 
 
 

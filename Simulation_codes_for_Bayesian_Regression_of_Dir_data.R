@@ -1,8 +1,8 @@
 
 
 n=1000  # NUmber of the samples
-p=10    # NUmber of the regression covariates
-d=2     # Number of direcions in the direcional data
+p=5    # NUmber of the regression covariates
+d=3     # Number of direcions in the direcional data
 
 
 #### bbeta is a matrix of dimension p\times d

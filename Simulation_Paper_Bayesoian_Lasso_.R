@@ -10,13 +10,13 @@
 
 
 
-n=500  # NUmber of the samples
-p=20    # NUmber of the regression covariates
+n=100  # NUmber of the samples
+p=120    # NUmber of the regression covariates
 d=2   # Number of direcions in the direcional data
 
-Num_of_nonzero_beta= round(p*.10)
-Min_Non_Zero_beta= 1
-Max_Non_Zero_beta=10
+Num_of_nonzero_beta= round(p*.02)
+Min_Non_Zero_beta= 10
+Max_Non_Zero_beta=20
 #### bbeta is a matrix of dimension p\times d
 #bbeta=matrix( rnorm(p*d), nrow=p, ncol=d)
 sigma_square=1
@@ -54,7 +54,7 @@ for(SimNum in 56:85){
                                                                                  X=data_lst$X,
                                                                                  prior=NULL,
                                                                                  beta_init = NULL,
-                                                                                 MCSamplerSize =5500,
+                                                                                 MCSamplerSize =1000,
                                                                                  lasso_lambda_spec = list(
                                                                                                             Type="SAMPLE",
                                                                                                             lasso_lambda=0.01,
