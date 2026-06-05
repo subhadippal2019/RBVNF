@@ -13,12 +13,12 @@ Y=data_lst$Y
 library(hmclearn)
 
 # 1. Define Log-Posterior
-logPOSTERIOR <- function(theta) {
+logPOSTERIOR <- function(theta, Y, X) {
   return(log_Likelihood_for_HMC(Y = Y, X = X, beta_vec = theta))
 }
 
 # 2. Define Gradient of Log-Posterior
-glogPOSTERIOR <- function(theta) {
+glogPOSTERIOR <- function(theta, Y, X) {
   return(c(gradient_log_Likelihood_for_HMC(Y = Y, X = X, beta_vec = theta)))
 }
 
@@ -34,7 +34,7 @@ log_Likelihood_for_HMC<-function(beta_vec, Y, X){
   XBeta_Norm= apply(X = XBeta,MARGIN = 1, FUN = function(xx){return(norm(as.matrix(xx)))} )
   #TR_Yt_XBeta=  sum(diag(t(Y)%*%XBeta)) # Sum of the exponent term
   log_Likelihood= sum(diag(t(Y)%*%XBeta))+
-    sum(nu*log(XBeta_Norm)- log_BesselI(x=XBeta_Norm, nu=.5))
+    sum(nu*log(XBeta_Norm)- log_BesselI(x=XBeta_Norm, nu=nu))
   #-  lasso_lambda*sum(abs(beta))
   return(log_Likelihood)
 }
@@ -73,7 +73,7 @@ library(maxLik)
 # beta_init<- solve(t(X)%*%X + diag(p)/prior$beta_sigma_sq)%*%secondPartOptEq   }
 beta_init_vec<- c(solve(t(X)%*%X)%*%t(X)%*%Y )
 
-res <- maxLik(logLik = logPOSTERIOR , grad = glogPOSTERIOR,  start=c(beta_init_vec), method = "CG") # use 'wrong' start values
+res <- maxLik(logLik = logPOSTERIOR , grad = glogPOSTERIOR,  start=c(beta_init_vec), Y=Y, X=X)#method = "CG" # use 'wrong' start values
 
 
 

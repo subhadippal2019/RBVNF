@@ -1,6 +1,6 @@
 
 n=1000  # NUmber of the samples
-p=10    # NUmber of the regression covariates
+p=20    # NUmber of the regression covariates
 d=2  # Number of direcions in the direcional data
 
 Num_of_nonzero_beta= round(p*.4)
