@@ -1,0 +1,117 @@
+---
+title: "Various_Simulated_Data_Generation_Setup"
+author: "RBVNF"
+date: "2026-07-30"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# The following is the procedure to obtain simulated data set. 
+
+The Packages to be loaded. 
+
+```{r }
+library(RBVNF)
+RBVNF::load_packages()
+RBVNF::load_additional_packages()
+```
+
+
+# Simulation Setup I: Simulated data when $\beta$ is not Sparse. 
+
+In the following simulation. Each coordinate of  $\beta^{\tiny{True}}$ is generated from Uniform distribution between $[-\text{beta_factor}, \text{beta_factor} ]$. Default value for "beta_factor=10". Therefore, as a default,  the regression coefficients are generated from $\text{Uniform}[-10, 10]$. 
+ In the demonstration next, we have used $p=5$, $n=500$ and $d=3$ where $p$ is number of covariates, $n$ is sample size and $d$ is such that the ${\bf Y} \in \mathbb{S}^{d-1}$. Therefore, in the following simulation, ${\bf X} \in \mathbb{R}^{n\times p}$, $\beta^{\tiny{True}}\in {\mathbb{R}}^{p\times d}$, and  ${\bf Y}$ is a $n\times d$ dimensional matrix with unit norm for each of its rows.
+In the following simulated data generation code 'beta' is same as  $\beta^{\tiny{True}}$.
+```{r }
+n=500  # Number of the samples
+p=5    # Number of the regression covariates
+d=3     # Number of direcions in the direcional data
+
+
+#### bbeta is a matrix of dimension p\times d
+#bbeta=matrix( rnorm(p*d), nrow=p, ncol=d)
+
+
+data_lst = Data_generator_vnf_reg(n=n,
+                                  p=p, 
+                                  d=d, 
+                                  concentration_factor = 1, 
+                                  beta_factor = 10)
+
+
+
+save(data_lst, file = "/Users/subhadippal/Desktop/data_lst_dataFrame.RData")
+```
+
+## Specification of the simulated data
+The object "data_lst" created by the function "Data_generator_vnf_reg()" is a list containing the X, Y and the ture values of beta. 
+data_lst$X = Values of covariates
+data_lst$Y= Matrix of responses. Each row represents an observations. 
+data_lst$beta= True value of the regression coefficient via which the 
+
+
+```{r , echo=FALSE}
+print("Dimension of Y:");dim(data_lst$Y)
+print("Dimension of X:"); dim(data_lst$X)
+print("Dimension of beta:"); dim(data_lst$beta)
+#head(data_lst$Y)
+#head(data_lst$X)
+print("A Few first rows of Beta");head(data_lst$beta)
+```
+
+
+# Simulation Setup II: Simulated data when $\beta$ is Sparse. 
+
+In the following simulation, approximately 2% (for demonstration we set 2%, it can be changed according to the need) of the regression coefficients are nonzero. If $\beta^{\tiny{True}}_{i,j}$ is a nonzero regression coefficient, then its magnitude is between 10 and 20, i.e.  $\vert  \beta^{\tiny{True}}_{i, j} \vert  \in [10,20]$ when $\beta^{\tiny{True}}_{i, j}$ is non zero.  In the demonstration next, we have used $p=200$, $n=100$ and $d=3$ where $p$ is number of covariates, $n$ is sample size and $d$ is such that the ${\bf Y} \in \mathbb{S}^{d-1}$. Therefore, in the following simulation, ${\bf X} \in \mathbb{R}^{n\times p}$, $\beta^{\tiny{True}}\in {\mathbb{R}}^{p\times d}$, and  ${\bf Y}$ is a $n\times d$ dimensional matrix with unit norm for each of its rows.
+In the following simulated data generation code 'beta' is same as  $\beta^{\tiny{True}}$.
+```{r }
+n=100  # Number of the samples
+p=200    # Number of the regression covariates
+d=3  # Number of directions in the directional data
+
+Num_of_nonzero_beta= round(p*.02)
+Min_Non_Zero_beta = 10 ; Max_Non_Zero_beta = 20 #. it means abs(\beta_{i,j}) is between [10,20] if it is non-zero.
+
+#### bbeta is a matrix of dimension p\times d
+#bbeta=matrix( rnorm(p*d), nrow=p, ncol=d)
+sigma_square=1
+tau_square=1000
+
+data_lst<-Data_generator_vnf_reg_sparse(n=n,
+                                        p=p,
+                                        d=d,
+                                        SetUp = 3,
+                                        NumOfNonZeroBeta=c(Num_of_nonzero_beta,
+                                                           Min_Non_Zero_beta,
+                                                           Max_Non_Zero_beta
+                                        )
+)
+save(data_lst, file = "/Users/subhadippal/Desktop/data_lst_dataFrame_Sparse.RData")
+
+```
+
+## Specification of the simulated data
+
+The object "data_lst" created by the function "Data_generator_vnf_reg()" is a list containing the X, Y and the ture values of beta. 
+data_lst$X = Values of covariates
+data_lst$Y= Matrix of responses. Each row represents an observations. 
+data_lst$beta= True value of the regression coefficient via which the 
+
+```{r , echo=FALSE}
+print("Dimension of Y:");dim(data_lst$Y)
+print("Dimension of X:"); dim(data_lst$X)
+print("Dimension of beta:"); dim(data_lst$beta)
+#head(data_lst$Y)
+#head(data_lst$X)
+print("A Few first rows of Beta");head(data_lst$beta)
+```
+
+

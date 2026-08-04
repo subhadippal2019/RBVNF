@@ -1,9 +1,9 @@
 
-n=1000  # NUmber of the samples
-p=20    # NUmber of the regression covariates
-d=2  # Number of direcions in the direcional data
+n=100  # NUmber of the samples
+p=200    # NUmber of the regression covariates
+d=3  # Number of direcions in the direcional data
 
-Num_of_nonzero_beta= round(p*.4)
+Num_of_nonzero_beta= round(p*.02)
 Min_Non_Zero_beta= 10
 Max_Non_Zero_beta=20
 #### bbeta is a matrix of dimension p\times d

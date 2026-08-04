@@ -77,7 +77,6 @@ print(cbind(TrueValue=c(t(data_lst$beta)), Posterior_mean=c(t(Posterior_mean)),L
 
 
 ```{r }
-
 plot_beta_p_20_d_3<-function(Mc_obj=Mc_obj_lso, burnIN=1000, PlotType="vio", zero_marking_linetype=6, zero_marking_linewidth=.8){
 
 
@@ -89,10 +88,10 @@ plot_beta_p_20_d_3<-function(Mc_obj=Mc_obj_lso, burnIN=1000, PlotType="vio", zer
   #plot_beta_p_20_d_2(Mc_obj_lso)
 
   data_summary <- function(x) {
-    m <- median(x)
-    ymin <- as.numeric(quantile(x,.025))#m-sd(x)
-    ymax <- as.numeric(quantile(x, 0.975))#m+sd(x)
-    return(c(y=m,ymin=ymin,ymax=ymax))
+      m <- median(x)
+      ymin <- as.numeric(quantile(x,.025))#m-sd(x)
+      ymax <- as.numeric(quantile(x, 0.975))#m+sd(x)
+      return(c(y=m,ymin=ymin,ymax=ymax))
   }
 
   Mc_Beta_burnin<-((Mc_obj$MC_lst$MC$Mc_Beta[-(1:burnIN), , ]))
